@@ -8,6 +8,7 @@ type Category = "restaurant" | "hair" | "nail" | "beauty";
 type FormState = {
   category: Category;
   placeName: string;
+  placeAddress: string;
   placeUrl: string;
   preferredDate: string;
   preferredTime: string;
@@ -22,9 +23,17 @@ type FormState = {
   website: string;
 };
 
+type DiscoveryItem = {
+  label: string;
+  query: string;
+  icon: string;
+  category: Category;
+};
+
 const INITIAL_FORM: FormState = {
   category: "restaurant",
   placeName: "",
+  placeAddress: "",
   placeUrl: "",
   preferredDate: "",
   preferredTime: "19:00",
@@ -39,44 +48,61 @@ const INITIAL_FORM: FormState = {
   website: "",
 };
 
+const DISCOVERY: Record<Language, DiscoveryItem[]> = {
+  ja: [
+    { label: "ソンスのカフェ", query: "성수 카페", icon: "☕", category: "restaurant" },
+    { label: "ホンデの人気店", query: "홍대 맛집", icon: "🍜", category: "restaurant" },
+    { label: "韓国料理", query: "서울 한식 맛집", icon: "🍲", category: "restaurant" },
+    { label: "韓国焼肉", query: "서울 고기집", icon: "🥩", category: "restaurant" },
+    { label: "ベーカリー", query: "서울 베이커리", icon: "🥐", category: "restaurant" },
+    { label: "ベジタリアン", query: "서울 채식 식당", icon: "🥗", category: "restaurant" },
+    { label: "ヘアサロン", query: "서울 미용실", icon: "✂️", category: "hair" },
+    { label: "ネイルサロン", query: "서울 네일샵", icon: "💅", category: "nail" },
+    { label: "スキンケア", query: "서울 피부관리", icon: "✨", category: "beauty" },
+    { label: "メイクアップ", query: "서울 메이크업샵", icon: "💄", category: "beauty" },
+    { label: "スパ・マッサージ", query: "서울 마사지", icon: "🌿", category: "beauty" },
+    { label: "ルーフトップバー", query: "서울 루프탑 바", icon: "🍸", category: "restaurant" },
+  ],
+  en: [
+    { label: "Seongsu cafés", query: "성수 카페", icon: "☕", category: "restaurant" },
+    { label: "Hongdae restaurants", query: "홍대 맛집", icon: "🍜", category: "restaurant" },
+    { label: "Korean food", query: "서울 한식 맛집", icon: "🍲", category: "restaurant" },
+    { label: "Korean BBQ", query: "서울 고기집", icon: "🥩", category: "restaurant" },
+    { label: "Bakeries", query: "서울 베이커리", icon: "🥐", category: "restaurant" },
+    { label: "Vegetarian food", query: "서울 채식 식당", icon: "🥗", category: "restaurant" },
+    { label: "Hair salons", query: "서울 미용실", icon: "✂️", category: "hair" },
+    { label: "Nail salons", query: "서울 네일샵", icon: "💅", category: "nail" },
+    { label: "Skin care", query: "서울 피부관리", icon: "✨", category: "beauty" },
+    { label: "Makeup studios", query: "서울 메이크업샵", icon: "💄", category: "beauty" },
+    { label: "Spa and massage", query: "서울 마사지", icon: "🌿", category: "beauty" },
+    { label: "Rooftop bars", query: "서울 루프탑 바", icon: "🍸", category: "restaurant" },
+  ],
+};
+
 const COPY = {
   ja: {
-    navRequest: "予約を依頼",
-    eyebrow: "韓国予約コンシェルジュ",
-    title: ["韓国のお店、", "代わりに予約します。"],
-    description: "韓国の電話番号や韓国語がなくても大丈夫。レストランや美容室へ確認し、予約可能な場合だけお支払いをご案内します。",
-    primaryCta: "無料で空席確認を依頼",
-    trust: ["韓国の電話番号不要", "日本語で依頼", "PayPal・カード対応"],
-    sampleLabel: "予約状況",
-    sampleTitle: "ソンス食堂 · 2名",
-    sampleStatus: "店舗へ確認中",
-    timeline: ["依頼受付", "空席を確認", "決済後に確定"],
-    howLabel: "利用方法",
-    howTitle: "難しい予約だけ、私たちが代行します",
-    steps: [
-      ["01", "希望を送る", "お店、日時、人数、希望内容を日本語で入力します。"],
-      ["02", "店舗へ確認", "韓国語で電話または店舗の公式連絡先へ確認します。"],
-      ["03", "支払い後に確定", "予約可能な場合だけ、手数料と店舗予約金の決済リンクを送ります。"],
-    ],
-    priceLabel: "料金とキャンセル",
-    priceTitle: "先に払う必要はありません",
-    priceDescription: "空席を確認できなかった場合、請求はありません。予約可能と確認できた後に、内容を確認してから支払います。",
-    cards: [
-      ["予約代行手数料", "目安 ¥700〜", "予約確定後は返金不可"],
-      ["店舗の予約金", "店舗の実費", "店舗のキャンセル規定を適用"],
-      ["支払い方法", "PayPal・対応カード", "メールで安全な決済リンクを案内"],
-    ],
-    noShowTitle: "来店しなかった場合",
-    noShowText: "予約代行手数料は返金されません。店舗予約金は店舗のノーショー規定に従い、一部または全額が失われる場合があります。",
+    navRequest: "予約を依頼する",
+    navExplore: "お店を探す",
+    quickRequestTitle: "予約リクエストを始める",
+    quickRequestText: "店名と希望日時を入力",
+    quickExploreTitle: "予約したいお店を探す",
+    quickExploreText: "人気カテゴリーからNaver Mapへ",
+    eyebrow: "韓国のお店予約",
+    title: "予約したいお店が決まったら、あとはお任せください。",
+    description: "店名と希望日時を送るだけ。韓国語で店舗へ確認し、予約できる場合にだけお支払いをご案内します。",
+    trust: ["韓国の電話番号不要", "日本語で依頼", "空席確認までは無料"],
     formLabel: "予約リクエスト",
-    formTitle: "行きたいお店を教えてください",
-    formDescription: "店舗の予約可否を先に確認します。通常は24時間以上先の予約を依頼してください。",
+    formTitle: "予約したいお店を入力",
+    formDescription: "店名は必須です。住所もわかれば、同名店舗の取り違えを防ぎ、より正確に確認できます。",
     category: "予約の種類",
-    categories: { restaurant: "レストラン", hair: "ヘアサロン", nail: "ネイル", beauty: "その他ビューティー" },
-    placeName: "店舗名",
+    categories: { restaurant: "飲食店・カフェ", hair: "ヘアサロン", nail: "ネイル", beauty: "その他ビューティー" },
+    placeName: "お店の名前",
     placeNamePlaceholder: "例：ソンス○○食堂",
-    placeUrl: "店舗URL・Instagram",
-    placeUrlPlaceholder: "Google Maps、Naver、Instagramなど",
+    placeAddress: "住所（わかる場合はおすすめ）",
+    placeAddressPlaceholder: "例：ソウル特別市 城東区 ○○路 12",
+    placeAddressHelp: "同じ名前のお店があるため、住所がわかれば店舗を間違えにくくなります。",
+    placeUrl: "お店のURL（任意）",
+    placeUrlPlaceholder: "Naver Map、Google Maps、Instagramなど",
     preferred: "第一希望",
     alternative: "第二希望（任意）",
     partySize: "人数",
@@ -87,53 +113,55 @@ const COPY = {
     email: "メールアドレス",
     country: "居住国",
     consent: "予約条件、キャンセル・ノーショー規定、個人情報の利用に同意します。",
-    submit: "無料で空席確認を依頼",
+    submit: "無料で空席確認を依頼する",
     submitting: "送信中…",
     successTitle: "予約リクエストを受け付けました",
-    successDescription: "店舗へ確認後、このメールアドレスに結果と決済案内を送ります。まだ予約は確定していません。",
+    successDescription: "店舗へ確認後、このメールアドレスに結果と決済案内を送ります。現時点では予約はまだ確定していません。",
     requestCode: "受付番号",
-    another: "別の予約を依頼",
+    another: "別の予約を依頼する",
     error: "送信できませんでした。入力内容を確認して、もう一度お試しください。",
+    processLabel: "予約の流れ",
+    processTitle: "送信後はこちらで対応します",
+    timeline: [
+      ["1", "リクエスト受付", "入力内容を確認します。"],
+      ["2", "店舗へ確認", "韓国語で空席と条件を確認します。"],
+      ["3", "支払い後に確定", "予約可能な場合のみ決済をご案内します。"],
+    ],
+    paymentLabel: "料金",
+    paymentTitle: "空席確認までは無料",
+    paymentText: "予約可能と確認できた後に、代行手数料と店舗予約金をご案内します。空席がなければ請求はありません。",
+    paymentItems: ["代行手数料：目安 ¥700〜", "店舗予約金：店舗が求める実費", "決済：PayPal・対応カード"],
+    noShow: "予約確定後の代行手数料は返金されません。店舗予約金は店舗のキャンセル・ノーショー規定に従います。",
+    exploreLabel: "お店を探す",
+    exploreTitle: "まだお店が決まっていませんか？",
+    exploreDescription: "気になるカテゴリーを押すと、Naver Mapの検索結果が新しいタブで開きます。お店の名前と住所をコピーして、上の予約フォームに貼り付けてください。",
+    exploreNote: "検索結果や店舗情報はNaver Map上で確認してください。",
     footer: "Booking Daijoubu · Seoul booking concierge",
     footerNotice: "予約の成立や店舗のサービス品質を保証するものではありません。医療予約には対応していません。",
   },
   en: {
-    navRequest: "Request booking",
-    eyebrow: "Korea booking concierge",
-    title: ["We book Korean places", "for you."],
-    description: "No Korean phone number or Korean language needed. We contact restaurants and beauty salons, and only ask you to pay after availability is confirmed.",
-    primaryCta: "Request a free availability check",
-    trust: ["No Korean phone number", "Request in English", "PayPal and cards"],
-    sampleLabel: "Booking status",
-    sampleTitle: "Seongsu restaurant · 2 guests",
-    sampleStatus: "Checking with the venue",
-    timeline: ["Request received", "Availability check", "Confirmed after payment"],
-    howLabel: "How it works",
-    howTitle: "We handle the bookings that are difficult to make yourself",
-    steps: [
-      ["01", "Send your request", "Tell us the place, dates, group size, and any special request."],
-      ["02", "We contact the venue", "We call or use the venue's official contact channel in Korean."],
-      ["03", "Pay and confirm", "After availability is confirmed, we send the fee and venue deposit payment link."],
-    ],
-    priceLabel: "Price and cancellation",
-    priceTitle: "No upfront payment",
-    priceDescription: "If the venue is unavailable, you pay nothing. After we confirm availability, you review the details before paying.",
-    cards: [
-      ["Booking service fee", "From about ¥700", "Non-refundable after confirmation"],
-      ["Venue deposit", "Actual venue amount", "Venue cancellation rules apply"],
-      ["Payment", "PayPal or supported cards", "Secure payment link sent by email"],
-    ],
-    noShowTitle: "If you do not show up",
-    noShowText: "The booking service fee is not refundable. The venue deposit may be partially or fully forfeited under the venue's no-show policy.",
+    navRequest: "Request a booking",
+    navExplore: "Find a place",
+    quickRequestTitle: "Start a booking request",
+    quickRequestText: "Enter the place and preferred time",
+    quickExploreTitle: "Find somewhere to book",
+    quickExploreText: "Browse popular searches on Naver Map",
+    eyebrow: "Book places in Korea",
+    title: "Once you choose the place, we handle the difficult part.",
+    description: "Send the place name and preferred time. We contact the venue in Korean and only ask you to pay when booking is available.",
+    trust: ["No Korean phone number", "Request in English", "Free until availability is confirmed"],
     formLabel: "Booking request",
-    formTitle: "Tell us where you want to go",
-    formDescription: "We check availability first. Please request bookings at least 24 hours in advance whenever possible.",
+    formTitle: "Enter the place you want to book",
+    formDescription: "The place name is required. Adding the address helps us avoid similarly named locations and contact the correct venue.",
     category: "Booking type",
-    categories: { restaurant: "Restaurant", hair: "Hair salon", nail: "Nail salon", beauty: "Other beauty" },
+    categories: { restaurant: "Restaurant or café", hair: "Hair salon", nail: "Nail salon", beauty: "Other beauty" },
     placeName: "Place name",
     placeNamePlaceholder: "Example: Seongsu restaurant name",
-    placeUrl: "Place URL or Instagram",
-    placeUrlPlaceholder: "Google Maps, Naver, Instagram, etc.",
+    placeAddress: "Address (recommended when available)",
+    placeAddressPlaceholder: "Example: 12 Example-ro, Seongdong-gu, Seoul",
+    placeAddressHelp: "An address helps us distinguish venues that share the same or a similar name.",
+    placeUrl: "Place URL (optional)",
+    placeUrlPlaceholder: "Naver Map, Google Maps, Instagram, etc.",
     preferred: "First choice",
     alternative: "Second choice (optional)",
     partySize: "Guests",
@@ -146,15 +174,35 @@ const COPY = {
     consent: "I agree to the booking, cancellation, no-show, and privacy terms.",
     submit: "Request a free availability check",
     submitting: "Sending…",
-    successTitle: "Your request has been received",
+    successTitle: "Your booking request has been received",
     successDescription: "We will email the result and payment instructions after checking with the venue. Your booking is not confirmed yet.",
     requestCode: "Request code",
     another: "Request another booking",
     error: "We could not send your request. Check the form and try again.",
+    processLabel: "What happens next",
+    processTitle: "We take it from here",
+    timeline: [
+      ["1", "Request received", "We review the information you sent."],
+      ["2", "Venue contacted", "We confirm availability and conditions in Korean."],
+      ["3", "Pay and confirm", "Payment is requested only when the venue is available."],
+    ],
+    paymentLabel: "Pricing",
+    paymentTitle: "Free until availability is confirmed",
+    paymentText: "After the venue confirms availability, we send the service fee and any venue deposit. There is no charge when the venue is unavailable.",
+    paymentItems: ["Service fee: from about ¥700", "Venue deposit: actual venue amount", "Payment: PayPal or supported cards"],
+    noShow: "The service fee is non-refundable after confirmation. Venue deposits follow the venue's cancellation and no-show policy.",
+    exploreLabel: "Find a place",
+    exploreTitle: "Still deciding where to go?",
+    exploreDescription: "Select a category to open Naver Map search results in a new tab. Copy the place name and address, then paste them into the booking form above.",
+    exploreNote: "Search results and venue information are provided on Naver Map.",
     footer: "Booking Daijoubu · Seoul booking concierge",
     footerNotice: "We do not guarantee availability or venue service quality. Medical bookings are not supported.",
   },
 } as const;
+
+function naverMapSearch(query: string) {
+  return `https://map.naver.com/p/search/${encodeURIComponent(query)}`;
+}
 
 export default function BookingHome() {
   const [language, setLanguage] = useState<Language>("ja");
@@ -163,18 +211,25 @@ export default function BookingHome() {
   const [error, setError] = useState("");
   const [requestCode, setRequestCode] = useState("");
   const copy = COPY[language];
+  const discovery = DISCOVERY[language];
+  const discoveryRows = [discovery.slice(0, 6), discovery.slice(6)];
 
   const minimumDate = useMemo(() => {
     const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Seoul", year: "numeric", month: "2-digit", day: "2-digit" }).format(tomorrow);
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Seoul",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(tomorrow);
   }, []);
 
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
   }
 
-  function scrollToForm() {
-    document.getElementById("booking-request")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  function scrollTo(sectionId: string) {
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -182,6 +237,7 @@ export default function BookingHome() {
     if (!form.consent) return;
     setSubmitting(true);
     setError("");
+
     try {
       const response = await fetch("/api/booking-requests", {
         method: "POST",
@@ -202,9 +258,13 @@ export default function BookingHome() {
   return (
     <main className="booking-page">
       <header className="booking-header">
-        <a className="booking-logo" href="/" aria-label="Booking Daijoubu home"><span>大</span><strong>Booking Daijoubu</strong></a>
+        <a className="booking-logo" href="/" aria-label="Booking Daijoubu home">
+          <span>大</span>
+          <strong>Booking Daijoubu</strong>
+        </a>
         <nav className="booking-nav">
-          <button type="button" onClick={scrollToForm}>{copy.navRequest}</button>
+          <button className="booking-nav-action booking-nav-primary" type="button" onClick={() => scrollTo("booking-request")}>{copy.navRequest}</button>
+          <button className="booking-nav-action" type="button" onClick={() => scrollTo("booking-explore")}>{copy.navExplore}</button>
           <div className="booking-language" aria-label="Language selector">
             <button className={language === "ja" ? "active" : ""} type="button" onClick={() => setLanguage("ja")}>日本語</button>
             <button className={language === "en" ? "active" : ""} type="button" onClick={() => setLanguage("en")}>EN</button>
@@ -212,60 +272,180 @@ export default function BookingHome() {
         </nav>
       </header>
 
-      <section className="booking-hero">
-        <div className="booking-hero-copy">
-          <p className="booking-kicker">{copy.eyebrow}</p>
-          <h1>{copy.title.map((line) => <span key={line}>{line}</span>)}</h1>
-          <p className="booking-hero-description">{copy.description}</p>
-          <button className="booking-primary" type="button" onClick={scrollToForm}>{copy.primaryCta}</button>
-          <div className="booking-trust-row">{copy.trust.map((item) => <span key={item}>✓ {item}</span>)}</div>
+      <div className="booking-platform-shell">
+        <section className="booking-quick-actions" aria-label="Quick actions">
+          <button className="booking-quick-card primary" type="button" onClick={() => scrollTo("booking-request")}>
+            <span className="booking-quick-icon">＋</span>
+            <span><strong>{copy.quickRequestTitle}</strong><small>{copy.quickRequestText}</small></span>
+            <b aria-hidden="true">→</b>
+          </button>
+          <button className="booking-quick-card" type="button" onClick={() => scrollTo("booking-explore")}>
+            <span className="booking-quick-icon">⌕</span>
+            <span><strong>{copy.quickExploreTitle}</strong><small>{copy.quickExploreText}</small></span>
+            <b aria-hidden="true">→</b>
+          </button>
+        </section>
+
+        <section className="booking-platform-intro">
+          <p>{copy.eyebrow}</p>
+          <h1>{copy.title}</h1>
+          <div className="booking-intro-row">
+            <span>{copy.description}</span>
+            <div className="booking-trust-row">{copy.trust.map((item) => <small key={item}>✓ {item}</small>)}</div>
+          </div>
+        </section>
+
+        <section id="booking-request" className="booking-workspace">
+          <div className="booking-form-card booking-platform-card">
+            <div className="booking-form-intro">
+              <p>{copy.formLabel}</p>
+              <h2>{copy.formTitle}</h2>
+              <span>{copy.formDescription}</span>
+            </div>
+
+            {requestCode ? (
+              <div className="booking-success">
+                <span>✓</span>
+                <h3>{copy.successTitle}</h3>
+                <p>{copy.successDescription}</p>
+                <div><small>{copy.requestCode}</small><strong>{requestCode}</strong></div>
+                <button type="button" onClick={() => setRequestCode("")}>{copy.another}</button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit}>
+                <label className="booking-field booking-field-wide">
+                  <span>{copy.category}</span>
+                  <div className="booking-category-grid">
+                    {(Object.keys(copy.categories) as Category[]).map((item) => (
+                      <button className={form.category === item ? "active" : ""} type="button" key={item} onClick={() => update("category", item)}>{copy.categories[item]}</button>
+                    ))}
+                  </div>
+                </label>
+
+                <label className="booking-field booking-field-wide">
+                  <span>{copy.placeName}</span>
+                  <input required value={form.placeName} onChange={(event) => update("placeName", event.target.value)} placeholder={copy.placeNamePlaceholder} maxLength={120} />
+                </label>
+
+                <label className="booking-field booking-field-wide">
+                  <span>{copy.placeAddress}</span>
+                  <input value={form.placeAddress} onChange={(event) => update("placeAddress", event.target.value)} placeholder={copy.placeAddressPlaceholder} maxLength={300} />
+                  <small className="booking-field-help">{copy.placeAddressHelp}</small>
+                </label>
+
+                <label className="booking-field booking-field-wide">
+                  <span>{copy.placeUrl}</span>
+                  <input type="url" value={form.placeUrl} onChange={(event) => update("placeUrl", event.target.value)} placeholder={copy.placeUrlPlaceholder} maxLength={500} />
+                </label>
+
+                <fieldset className="booking-fieldset">
+                  <legend>{copy.preferred}</legend>
+                  <input aria-label={`${copy.preferred} date`} required type="date" min={minimumDate} value={form.preferredDate} onChange={(event) => update("preferredDate", event.target.value)} />
+                  <input aria-label={`${copy.preferred} time`} required type="time" value={form.preferredTime} onChange={(event) => update("preferredTime", event.target.value)} />
+                </fieldset>
+
+                <fieldset className="booking-fieldset">
+                  <legend>{copy.alternative}</legend>
+                  <input aria-label={`${copy.alternative} date`} type="date" min={minimumDate} value={form.alternativeDate} onChange={(event) => update("alternativeDate", event.target.value)} />
+                  <input aria-label={`${copy.alternative} time`} type="time" value={form.alternativeTime} onChange={(event) => update("alternativeTime", event.target.value)} />
+                </fieldset>
+
+                <label className="booking-field">
+                  <span>{copy.partySize}</span>
+                  <input required type="number" min="1" max="20" value={form.partySize} onChange={(event) => update("partySize", event.target.value)} />
+                </label>
+
+                <label className="booking-field booking-field-wide">
+                  <span>{copy.details}</span>
+                  <textarea value={form.requestDetails} onChange={(event) => update("requestDetails", event.target.value)} placeholder={copy.detailsPlaceholder} maxLength={1500} />
+                </label>
+
+                <label className="booking-field">
+                  <span>{copy.name}</span>
+                  <input required value={form.customerName} onChange={(event) => update("customerName", event.target.value)} placeholder={copy.namePlaceholder} maxLength={100} />
+                </label>
+
+                <label className="booking-field">
+                  <span>{copy.email}</span>
+                  <input required type="email" value={form.customerEmail} onChange={(event) => update("customerEmail", event.target.value)} placeholder="name@example.com" maxLength={180} />
+                </label>
+
+                <label className="booking-field">
+                  <span>{copy.country}</span>
+                  <select value={form.customerCountry} onChange={(event) => update("customerCountry", event.target.value)}>
+                    <option value="JP">日本 / Japan</option>
+                    <option value="US">United States</option>
+                    <option value="GB">United Kingdom</option>
+                    <option value="AU">Australia</option>
+                    <option value="CA">Canada</option>
+                    <option value="SG">Singapore</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </label>
+
+                <label className="booking-honeypot" aria-hidden="true">Website<input tabIndex={-1} autoComplete="off" value={form.website} onChange={(event) => update("website", event.target.value)} /></label>
+                <label className="booking-consent booking-field-wide"><input required type="checkbox" checked={form.consent} onChange={(event) => update("consent", event.target.checked)} /><span>{copy.consent}</span></label>
+                {error && <p className="booking-error" role="alert">{error}</p>}
+                <button className="booking-submit booking-field-wide" disabled={submitting || !form.consent} type="submit">{submitting ? copy.submitting : copy.submit}</button>
+              </form>
+            )}
+          </div>
+
+          <aside className="booking-side-rail">
+            <section className="booking-platform-card booking-process-card">
+              <p className="booking-card-label">{copy.processLabel}</p>
+              <h2>{copy.processTitle}</h2>
+              <ol>
+                {copy.timeline.map(([number, title, description]) => (
+                  <li key={number}><span>{number}</span><div><strong>{title}</strong><small>{description}</small></div></li>
+                ))}
+              </ol>
+            </section>
+
+            <section className="booking-platform-card booking-payment-card">
+              <p className="booking-card-label">{copy.paymentLabel}</p>
+              <h2>{copy.paymentTitle}</h2>
+              <p>{copy.paymentText}</p>
+              <ul>{copy.paymentItems.map((item) => <li key={item}>✓ {item}</li>)}</ul>
+              <small className="booking-noshow-note">{copy.noShow}</small>
+            </section>
+          </aside>
+        </section>
+      </div>
+
+      <section id="booking-explore" className="booking-discovery">
+        <div className="booking-discovery-heading">
+          <p>{copy.exploreLabel}</p>
+          <h2>{copy.exploreTitle}</h2>
+          <span>{copy.exploreDescription}</span>
         </div>
-        <div className="booking-status-preview" aria-hidden="true">
-          <div className="booking-preview-top"><span>{copy.sampleLabel}</span><i /></div>
-          <h2>{copy.sampleTitle}</h2>
-          <div className="booking-preview-status"><span className="booking-spinner" /><strong>{copy.sampleStatus}</strong></div>
-          <ol>{copy.timeline.map((item, index) => <li key={item} className={index === 0 ? "done" : index === 1 ? "active" : ""}><span>{index + 1}</span><p>{item}</p></li>)}</ol>
+
+        <div className="booking-marquee" aria-label={copy.exploreLabel}>
+          {discoveryRows.map((row, rowIndex) => (
+            <div className={`booking-marquee-lane ${rowIndex === 1 ? "reverse" : ""}`} key={rowIndex}>
+              <div className="booking-marquee-track">
+                {[...row, ...row].map((item, index) => (
+                  <a
+                    key={`${item.query}-${index}`}
+                    href={naverMapSearch(item.query)}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    aria-hidden={index >= row.length}
+                    tabIndex={index >= row.length ? -1 : 0}
+                    onClick={() => update("category", item.category)}
+                  >
+                    <span>{item.icon}</span>
+                    <strong>{item.label}</strong>
+                    <b aria-hidden="true">↗</b>
+                  </a>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
+        <small className="booking-explore-note">{copy.exploreNote}</small>
       </section>
 
-      <section className="booking-section booking-how">
-        <div className="booking-section-heading"><p>{copy.howLabel}</p><h2>{copy.howTitle}</h2></div>
-        <div className="booking-step-grid">{copy.steps.map(([number, title, description]) => <article key={number}><span>{number}</span><h3>{title}</h3><p>{description}</p></article>)}</div>
-      </section>
-
-      <section className="booking-section booking-pricing">
-        <div className="booking-pricing-copy">
-          <p className="booking-section-label">{copy.priceLabel}</p><h2>{copy.priceTitle}</h2><p>{copy.priceDescription}</p>
-          <div className="booking-noshow-box"><strong>{copy.noShowTitle}</strong><span>{copy.noShowText}</span></div>
-        </div>
-        <div className="booking-price-card">{copy.cards.map(([title, value, note]) => <div key={title}><span>{title}</span><strong>{value}</strong><small>{note}</small></div>)}</div>
-      </section>
-
-      <section id="booking-request" className="booking-form-section">
-        <div className="booking-form-intro"><p>{copy.formLabel}</p><h2>{copy.formTitle}</h2><span>{copy.formDescription}</span></div>
-        <div className="booking-form-card">
-          {requestCode ? (
-            <div className="booking-success"><span>✓</span><h3>{copy.successTitle}</h3><p>{copy.successDescription}</p><div><small>{copy.requestCode}</small><strong>{requestCode}</strong></div><button type="button" onClick={() => setRequestCode("")}>{copy.another}</button></div>
-          ) : (
-            <form onSubmit={handleSubmit}>
-              <label className="booking-field booking-field-wide"><span>{copy.category}</span><div className="booking-category-grid">{(Object.keys(copy.categories) as Category[]).map((item) => <button className={form.category === item ? "active" : ""} type="button" key={item} onClick={() => update("category", item)}>{copy.categories[item]}</button>)}</div></label>
-              <label className="booking-field"><span>{copy.placeName}</span><input required value={form.placeName} onChange={(e) => update("placeName", e.target.value)} placeholder={copy.placeNamePlaceholder} maxLength={120} /></label>
-              <label className="booking-field"><span>{copy.placeUrl}</span><input type="url" value={form.placeUrl} onChange={(e) => update("placeUrl", e.target.value)} placeholder={copy.placeUrlPlaceholder} maxLength={500} /></label>
-              <fieldset className="booking-fieldset"><legend>{copy.preferred}</legend><input aria-label={`${copy.preferred} date`} required type="date" min={minimumDate} value={form.preferredDate} onChange={(e) => update("preferredDate", e.target.value)} /><input aria-label={`${copy.preferred} time`} required type="time" value={form.preferredTime} onChange={(e) => update("preferredTime", e.target.value)} /></fieldset>
-              <fieldset className="booking-fieldset"><legend>{copy.alternative}</legend><input aria-label={`${copy.alternative} date`} type="date" min={minimumDate} value={form.alternativeDate} onChange={(e) => update("alternativeDate", e.target.value)} /><input aria-label={`${copy.alternative} time`} type="time" value={form.alternativeTime} onChange={(e) => update("alternativeTime", e.target.value)} /></fieldset>
-              <label className="booking-field"><span>{copy.partySize}</span><input required type="number" min="1" max="20" value={form.partySize} onChange={(e) => update("partySize", e.target.value)} /></label>
-              <label className="booking-field booking-field-wide"><span>{copy.details}</span><textarea value={form.requestDetails} onChange={(e) => update("requestDetails", e.target.value)} placeholder={copy.detailsPlaceholder} maxLength={1500} /></label>
-              <label className="booking-field"><span>{copy.name}</span><input required value={form.customerName} onChange={(e) => update("customerName", e.target.value)} placeholder={copy.namePlaceholder} maxLength={100} /></label>
-              <label className="booking-field"><span>{copy.email}</span><input required type="email" value={form.customerEmail} onChange={(e) => update("customerEmail", e.target.value)} placeholder="name@example.com" maxLength={180} /></label>
-              <label className="booking-field"><span>{copy.country}</span><select value={form.customerCountry} onChange={(e) => update("customerCountry", e.target.value)}><option value="JP">日本 / Japan</option><option value="US">United States</option><option value="GB">United Kingdom</option><option value="AU">Australia</option><option value="CA">Canada</option><option value="SG">Singapore</option><option value="OTHER">Other</option></select></label>
-              <label className="booking-honeypot" aria-hidden="true">Website<input tabIndex={-1} autoComplete="off" value={form.website} onChange={(e) => update("website", e.target.value)} /></label>
-              <label className="booking-consent booking-field-wide"><input required type="checkbox" checked={form.consent} onChange={(e) => update("consent", e.target.checked)} /><span>{copy.consent}</span></label>
-              {error && <p className="booking-error" role="alert">{error}</p>}
-              <button className="booking-submit booking-field-wide" disabled={submitting || !form.consent} type="submit">{submitting ? copy.submitting : copy.submit}</button>
-            </form>
-          )}
-        </div>
-      </section>
       <footer className="booking-footer"><strong>{copy.footer}</strong><p>{copy.footerNotice}</p></footer>
     </main>
   );
