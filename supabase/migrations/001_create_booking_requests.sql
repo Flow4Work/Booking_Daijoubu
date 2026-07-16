@@ -6,6 +6,7 @@ create table if not exists public.booking_requests (
   language text not null check (language in ('ja', 'en')),
   category text not null check (category in ('restaurant', 'hair', 'nail', 'beauty')),
   place_name text not null,
+  place_address text,
   place_url text,
   preferred_date date not null,
   preferred_time time not null,
@@ -26,6 +27,9 @@ create table if not exists public.booking_requests (
     or (alternative_date is not null and alternative_time is not null)
   )
 );
+
+alter table public.booking_requests
+  add column if not exists place_address text;
 
 alter table public.booking_requests enable row level security;
 
