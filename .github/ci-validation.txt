@@ -1,0 +1,1 @@
+Validates the deferred-name booking and localized receipt-email flow.
