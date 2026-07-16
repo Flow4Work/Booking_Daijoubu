@@ -36,7 +36,7 @@ const INITIAL_FORM: FormState = {
   placeName: "",
   placeAddress: "",
   placeUrl: "",
-  preferredYear: "",
+  preferredYear: "2026",
   preferredMonth: "",
   preferredDay: "",
   preferredTime: "19:00",
@@ -53,14 +53,20 @@ const CONCERNS = {
   ja: [
     ["📱", "韓国の電話番号がない"],
     ["🗣️", "韓国語が話せない"],
-    ["☎️", "電話予約が難しい"],
-    ["🙌", "大丈夫。予約をお手伝いします"],
+    ["🔐", "韓国の本人認証ができない"],
+    ["💳", "海外カードが使えない"],
+    ["☎️", "お店に電話できない"],
+    ["💰", "予約金の支払い方がわからない"],
+    ["🙌", "Booking Daijoubuに連絡すれば大丈夫"],
   ],
   en: [
     ["📱", "I don’t have a Korean phone number"],
     ["🗣️", "I don’t speak Korean"],
+    ["🔐", "I can’t complete Korean verification"],
+    ["💳", "My overseas card doesn’t work"],
     ["☎️", "I can’t call the venue"],
-    ["🙌", "Don’t worry. We’ll help you book"],
+    ["💰", "I don’t know how to pay the deposit"],
+    ["🙌", "Contact Booking Daijoubu — we’ll handle it"],
   ],
 } as const;
 
@@ -99,11 +105,12 @@ const COPY = {
   ja: {
     navRequest: "予約を依頼する",
     navExplore: "お店を探す",
-    title: ["韓国のお店を、", "代わりに予約します。"],
-    description: ["店名と希望日時を送るだけ。", "予約できる場合だけ、お支払いをご案内します。"],
+    title: "韓国のお店を代わりに予約します。",
+    description: "店名と日時を送るだけ。空席確認後、支払いで予約確定。",
     formLabel: "予約リクエスト",
     formTitle: "予約したいお店を入力",
     formDescription: "店名と希望日時を入力してください。住所がわかれば、同名店舗の取り違えを防げます。",
+    confirmationNote: "店舗への空席確認は無料です。予約可能と確認できた場合のみ、代行手数料と店舗予約金を先払いして予約を確定します。",
     required: "必須",
     optional: "任意",
     requiredError: "入力してください。",
@@ -111,7 +118,7 @@ const COPY = {
     emailError: "正しいメールアドレスを入力してください。",
     consentError: "同意が必要です。",
     category: "予約の種類",
-    categories: { restaurant: "飲食店・カフェ", hair: "ヘアサロン", nail: "ネイル", beauty: "その他ビューティー" },
+    categories: { restaurant: "飲食店・カフェ", hair: "ヘアサロン", nail: "ネイル", beauty: "その他のお問い合わせ" },
     placeName: "お店の名前",
     placeNamePlaceholder: "例：ソンス○○食堂",
     placeAddress: "住所",
@@ -123,6 +130,7 @@ const COPY = {
     year: "年",
     month: "月",
     day: "日",
+    time: "時間",
     partySize: "人数",
     details: "希望内容・注意事項",
     detailsPlaceholder: "アレルギー、希望メニュー、ヘアスタイル、予算など",
@@ -141,13 +149,13 @@ const COPY = {
     processLabel: "予約の流れ",
     processTitle: "送信後はこちらで対応します",
     timeline: [
-      ["1", "リクエスト受付", "入力内容を確認します。"],
-      ["2", "店舗へ確認", "韓国語で空席と条件を確認します。"],
-      ["3", "支払い後に確定", "予約可能な場合のみ決済をご案内します。"],
+      ["1", "無料で空席確認", "韓国語で店舗へ空席と条件を確認します。"],
+      ["2", "先払いをご案内", "予約可能な場合だけ手数料と予約金をご案内します。"],
+      ["3", "支払い後に確定", "入金を確認して店舗予約を最終確定します。"],
     ],
     paymentLabel: "料金",
-    paymentTitle: "空席確認までは無料",
-    paymentText: "予約可能と確認できた後に、代行手数料と店舗予約金をご案内します。空席がなければ請求はありません。",
+    paymentTitle: "確認までは無料",
+    paymentText: "空席がなければ請求はありません。予約できる場合だけ、内容と金額を確認して先払いします。",
     paymentItems: ["代行手数料：目安 ¥700〜", "店舗予約金：店舗が求める実費", "決済：PayPal・対応カード"],
     noShow: "予約確定後の代行手数料は返金されません。店舗予約金は店舗のキャンセル・ノーショー規定に従います。",
     exploreLabel: "お店を探す",
@@ -160,11 +168,12 @@ const COPY = {
   en: {
     navRequest: "Request a booking",
     navExplore: "Find a place",
-    title: ["We book Korean places", "for you."],
-    description: ["Send the place and preferred time.", "Pay only after availability is confirmed."],
+    title: "We book Korean places for you.",
+    description: "Send the place and time. Pay only after we confirm availability.",
     formLabel: "Booking request",
     formTitle: "Enter the place you want to book",
     formDescription: "Enter the place and preferred time. Adding an address helps us identify the correct venue.",
+    confirmationNote: "Checking with the venue is free. Only when booking is available do you prepay the service fee and any venue deposit to finalize it.",
     required: "Required",
     optional: "Optional",
     requiredError: "This field is required.",
@@ -172,7 +181,7 @@ const COPY = {
     emailError: "Enter a valid email address.",
     consentError: "You must agree before submitting.",
     category: "Booking type",
-    categories: { restaurant: "Restaurant or café", hair: "Hair salon", nail: "Nail salon", beauty: "Other beauty" },
+    categories: { restaurant: "Restaurant or café", hair: "Hair salon", nail: "Nail salon", beauty: "Other inquiry" },
     placeName: "Place name",
     placeNamePlaceholder: "Example: Seongsu restaurant name",
     placeAddress: "Address",
@@ -184,6 +193,7 @@ const COPY = {
     year: "Year",
     month: "Month",
     day: "Day",
+    time: "Time",
     partySize: "Guests",
     details: "Requests and notes",
     detailsPlaceholder: "Allergies, menu, hairstyle, budget, and other details",
@@ -202,15 +212,15 @@ const COPY = {
     processLabel: "What happens next",
     processTitle: "We take it from here",
     timeline: [
-      ["1", "Request received", "We review the information you sent."],
-      ["2", "Venue contacted", "We confirm availability and conditions in Korean."],
-      ["3", "Pay and confirm", "Payment is requested only when the venue is available."],
+      ["1", "Free availability check", "We contact the venue in Korean and confirm the conditions."],
+      ["2", "Prepayment request", "Only when available do we send the service fee and deposit."],
+      ["3", "Booking finalized", "We finalize the venue booking after payment is received."],
     ],
     paymentLabel: "Pricing",
-    paymentTitle: "Free until availability is confirmed",
-    paymentText: "After the venue confirms availability, we send the service fee and any venue deposit. There is no charge when the venue is unavailable.",
+    paymentTitle: "Free until confirmed available",
+    paymentText: "You pay nothing if the venue is unavailable. When it is available, review the details and prepay to finalize the booking.",
     paymentItems: ["Service fee: from about ¥700", "Venue deposit: actual venue amount", "Payment: PayPal or supported cards"],
-    noShow: "The service fee is non-refundable after confirmation. Venue deposits follow the venue's cancellation and no-show policy.",
+    noShow: "The service fee is non-refundable after confirmation. Venue deposits follow the venue’s cancellation and no-show policy.",
     exploreLabel: "Find a place",
     exploreTitle: "Still deciding where to go?",
     exploreDescription: "Select a category to open Naver Map with an English search. Copy the place name and address, then enter them in the booking form.",
@@ -221,6 +231,14 @@ const COPY = {
 } as const;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const YEARS = [2026, 2027, 2028];
+const MONTHS = Array.from({ length: 12 }, (_, index) => index + 1);
+const TIME_OPTIONS = Array.from({ length: 96 }, (_, index) => {
+  const totalMinutes = index * 15;
+  const hour = Math.floor(totalMinutes / 60);
+  const minute = totalMinutes % 60;
+  return `${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}`;
+});
 
 function naverMapSearch(query: string) {
   return `https://map.naver.com/p/search/${encodeURIComponent(query)}`;
@@ -229,6 +247,15 @@ function naverMapSearch(query: string) {
 function buildDate(form: FormState) {
   if (!form.preferredYear || !form.preferredMonth || !form.preferredDay) return "";
   return `${form.preferredYear}-${form.preferredMonth.padStart(2, "0")}-${form.preferredDay.padStart(2, "0")}`;
+}
+
+function localizedTime(value: string, language: Language) {
+  const [hourText, minute] = value.split(":");
+  const hour = Number(hourText);
+  if (language === "ja") return `${hourText}:${minute}`;
+  const period = hour < 12 ? "AM" : "PM";
+  const displayHour = hour % 12 || 12;
+  return `${displayHour}:${minute} ${period}`;
 }
 
 export default function BookingHome() {
@@ -252,15 +279,12 @@ export default function BookingHome() {
     }).format(tomorrow);
   }, []);
 
-  const minimumYear = Number(minimumDate.slice(0, 4));
-  const years = useMemo(() => [minimumYear, minimumYear + 1, minimumYear + 2], [minimumYear]);
-  const months = useMemo(() => Array.from({ length: 12 }, (_, index) => index + 1), []);
-  const selectedYear = Number(form.preferredYear || minimumYear);
+  const selectedYear = Number(form.preferredYear || 2026);
   const selectedMonth = Number(form.preferredMonth || 1);
   const maximumDay = new Date(selectedYear, selectedMonth, 0).getDate();
   const days = useMemo(() => Array.from({ length: maximumDay }, (_, index) => index + 1), [maximumDay]);
-
   const preferredDate = buildDate(form);
+
   const validation = useMemo<Record<ValidationKey, string>>(() => {
     const preferredAt = preferredDate ? new Date(`${preferredDate}T${form.preferredTime || "00:00"}:00+09:00`) : null;
     const dateInvalid = !preferredDate || !preferredAt || Number.isNaN(preferredAt.getTime()) || preferredDate < minimumDate;
@@ -330,15 +354,14 @@ export default function BookingHome() {
 
   const yearSelect = (
     <select key="year" aria-label={copy.year} value={form.preferredYear} onChange={(event) => update("preferredYear", event.target.value)}>
-      <option value="">{copy.year}</option>
-      {years.map((year) => <option key={year} value={year}>{language === "ja" ? `${year}年` : year}</option>)}
+      {YEARS.map((year) => <option key={year} value={year}>{language === "ja" ? `${year}年` : year}</option>)}
     </select>
   );
 
   const monthSelect = (
     <select key="month" aria-label={copy.month} value={form.preferredMonth} onChange={(event) => update("preferredMonth", event.target.value)}>
       <option value="">{copy.month}</option>
-      {months.map((month) => (
+      {MONTHS.map((month) => (
         <option key={month} value={month}>
           {language === "ja" ? `${month}月` : new Intl.DateTimeFormat("en", { month: "short" }).format(new Date(2026, month - 1, 1))}
         </option>
@@ -377,13 +400,14 @@ export default function BookingHome() {
 
       <div className="booking-platform-shell">
         <section className="booking-platform-intro">
-          <h1>{copy.title.map((line) => <span key={line}>{line}</span>)}</h1>
-          <p>{copy.description.map((line) => <span key={line}>{line}</span>)}</p>
+          <h1>{copy.title}</h1>
+          <p>{copy.description}</p>
         </section>
 
         <section id="booking-request" className="booking-workspace">
           <div className="booking-form-card booking-platform-card">
             <div className="booking-form-intro"><p>{copy.formLabel}</p><h2>{copy.formTitle}</h2><span>{copy.formDescription}</span></div>
+            <div className="booking-confirmation-note"><span>✓</span><p>{copy.confirmationNote}</p></div>
 
             {requestCode ? (
               <div className="booking-success"><span>✓</span><h3>{copy.successTitle}</h3><p>{copy.successDescription}</p><div><small>{copy.requestCode}</small><strong>{requestCode}</strong></div><button type="button" onClick={() => setRequestCode("")}>{copy.another}</button></div>
@@ -411,7 +435,9 @@ export default function BookingHome() {
                 <fieldset className={`booking-fieldset booking-field-wide ${hasError("preferredDate") || hasError("preferredTime") ? "has-error" : ""}`} data-error={hasError("preferredDate") || hasError("preferredTime") || undefined}>
                   <legend>{copy.preferred}<b className="booking-required">{copy.required}</b></legend>
                   <div className={`booking-date-grid ${language}`}>{language === "ja" ? [yearSelect, monthSelect, daySelect] : [monthSelect, daySelect, yearSelect]}</div>
-                  <input aria-label={`${copy.preferred} time`} aria-invalid={hasError("preferredTime")} type="time" value={form.preferredTime} onChange={(event) => update("preferredTime", event.target.value)} />
+                  <select aria-label={copy.time} aria-invalid={hasError("preferredTime")} value={form.preferredTime} onChange={(event) => update("preferredTime", event.target.value)}>
+                    {TIME_OPTIONS.map((time) => <option key={time} value={time}>{localizedTime(time, language)}</option>)}
+                  </select>
                   {(hasError("preferredDate") || hasError("preferredTime")) && <small className="booking-validation-error">{validation.preferredDate || validation.preferredTime}</small>}
                 </fieldset>
 
