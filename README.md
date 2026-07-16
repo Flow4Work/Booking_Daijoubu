@@ -17,6 +17,8 @@ npm run dev
 
 ## Database
 
+Run `supabase/migrations/001_create_booking_requests.sql` in the connected Supabase project before accepting requests.
+
 The API writes to a `booking_requests` table with these columns:
 
-`request_code`, `language`, `category`, `place_name`, `place_url`, `preferred_date`, `preferred_time`, `alternative_date`, `alternative_time`, `party_size`, `request_details`, `customer_name`, `customer_email`, `customer_country`, `status`, `payment_method`, `payment_status`.
+`request_code`, `language`, `category`, `place_name`, `place_address`, `place_url`, `preferred_date`, `preferred_time`, `alternative_date`, `alternative_time`, `party_size`, `request_details`, `customer_name`, `customer_email`, `customer_country`, `status`, `payment_method`, `payment_status`.
