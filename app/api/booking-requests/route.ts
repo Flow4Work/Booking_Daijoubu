@@ -34,6 +34,7 @@ export async function POST(request: Request) {
     const language = text(body.language, 2);
     const category = text(body.category, 20);
     const placeName = text(body.placeName, 120);
+    const placeAddress = text(body.placeAddress, 300);
     const placeUrl = text(body.placeUrl, 500);
     const preferredDate = date(body.preferredDate);
     const preferredTime = text(body.preferredTime, 5);
@@ -79,6 +80,7 @@ export async function POST(request: Request) {
       language,
       category,
       place_name: placeName,
+      place_address: placeAddress || null,
       place_url: placeUrl || null,
       preferred_date: preferredDate,
       preferred_time: preferredTime,
