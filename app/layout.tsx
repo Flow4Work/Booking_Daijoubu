@@ -4,7 +4,7 @@ import "./booking-polish.css";
 
 export const metadata: Metadata = {
   title: "韓国のお店予約を日本語で | Booking Daijoubu",
-  description: "韓国のレストラン、カフェ、美容室を日本語で予約リクエスト。店名と希望日時を送れば、韓国語で空席を確認します。",
+  description: "韓国のレストラン、カフェ、美容室の空席を日本語で無料確認。予約可能な場合のみ、名義と先払い方法をご案内します。",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
