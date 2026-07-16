@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { sendBookingReceiptEmail } from "@/lib/booking-email";
 import { getSupabaseServerClient } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -28,7 +29,7 @@ export async function POST(request: Request) {
     const body = (await request.json()) as Record<string, unknown>;
 
     if (text(body.website, 200)) {
-      return NextResponse.json({ requestCode: requestCode() }, { status: 201 });
+      return NextResponse.json({ requestCode: requestCode(), emailSent: true }, { status: 201 });
     }
 
     const language = text(body.language, 2);
@@ -38,14 +39,9 @@ export async function POST(request: Request) {
     const placeUrl = text(body.placeUrl, 500);
     const preferredDate = date(body.preferredDate);
     const preferredTime = text(body.preferredTime, 5);
-    const alternativeDate = date(body.alternativeDate);
-    const submittedAlternativeTime = text(body.alternativeTime, 5);
-    const alternativeTime = alternativeDate ? submittedAlternativeTime || null : null;
     const partySize = Number(body.partySize);
     const requestDetails = text(body.requestDetails, 1500);
-    const customerName = text(body.customerName, 100);
     const customerEmail = text(body.customerEmail, 180).toLowerCase();
-    const customerCountry = text(body.customerCountry, 20) || "JP";
     const consent = body.consent === true;
 
     if (!ALLOWED_LANGUAGES.has(language) || !ALLOWED_CATEGORIES.has(category)) {
@@ -54,14 +50,11 @@ export async function POST(request: Request) {
     if (!placeName || !preferredDate || !/^\d{2}:\d{2}$/.test(preferredTime)) {
       return NextResponse.json({ error: "Please enter the place, date, and time." }, { status: 400 });
     }
-    if (alternativeDate && (!alternativeTime || !/^\d{2}:\d{2}$/.test(alternativeTime))) {
-      return NextResponse.json({ error: "The alternative time is invalid." }, { status: 400 });
-    }
     if (!Number.isInteger(partySize) || partySize < 1 || partySize > 20) {
       return NextResponse.json({ error: "Party size must be between 1 and 20." }, { status: 400 });
     }
-    if (!customerName || !EMAIL_PATTERN.test(customerEmail) || !consent) {
-      return NextResponse.json({ error: "Please check your name, email, and agreement." }, { status: 400 });
+    if (!EMAIL_PATTERN.test(customerEmail) || !consent) {
+      return NextResponse.json({ error: "Please check your email and agreement." }, { status: 400 });
     }
 
     const preferredAt = new Date(`${preferredDate}T${preferredTime}:00+09:00`);
@@ -75,7 +68,8 @@ export async function POST(request: Request) {
     }
 
     const code = requestCode();
-    const { error } = await supabase.from("booking_requests").insert({
+    const customerCountry = language === "ja" ? "JP" : "OTHER";
+    const { error: insertError } = await supabase.from("booking_requests").insert({
       request_code: code,
       language,
       category,
@@ -84,11 +78,11 @@ export async function POST(request: Request) {
       place_url: placeUrl || null,
       preferred_date: preferredDate,
       preferred_time: preferredTime,
-      alternative_date: alternativeDate,
-      alternative_time: alternativeTime,
+      alternative_date: null,
+      alternative_time: null,
       party_size: partySize,
       request_details: requestDetails || null,
-      customer_name: customerName,
+      customer_name: null,
       customer_email: customerEmail,
       customer_country: customerCountry,
       status: "new",
@@ -96,12 +90,39 @@ export async function POST(request: Request) {
       payment_status: "not_requested",
     });
 
-    if (error) {
-      console.error("booking request insert failed", error);
+    if (insertError) {
+      console.error("booking request insert failed", insertError);
       return NextResponse.json({ error: "Could not save the booking request." }, { status: 500 });
     }
 
-    return NextResponse.json({ requestCode: code }, { status: 201 });
+    let emailSent = false;
+    try {
+      emailSent = await sendBookingReceiptEmail({
+        requestCode: code,
+        language: language as "ja" | "en",
+        category: category as "restaurant" | "hair" | "nail" | "beauty",
+        placeName,
+        placeAddress: placeAddress || null,
+        placeUrl: placeUrl || null,
+        preferredDate,
+        preferredTime,
+        partySize,
+        requestDetails: requestDetails || null,
+        customerEmail,
+      });
+    } catch (emailError) {
+      console.error("booking receipt email threw", emailError);
+    }
+
+    if (emailSent) {
+      const { error: updateError } = await supabase
+        .from("booking_requests")
+        .update({ confirmation_email_sent_at: new Date().toISOString() })
+        .eq("request_code", code);
+      if (updateError) console.error("email sent timestamp update failed", updateError);
+    }
+
+    return NextResponse.json({ requestCode: code, emailSent }, { status: 201 });
   } catch (error) {
     console.error("booking request API failed", error);
     return NextResponse.json({ error: "Invalid booking request." }, { status: 400 });
