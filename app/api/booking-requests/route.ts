@@ -38,7 +38,8 @@ export async function POST(request: Request) {
     const preferredDate = date(body.preferredDate);
     const preferredTime = text(body.preferredTime, 5);
     const alternativeDate = date(body.alternativeDate);
-    const alternativeTime = text(body.alternativeTime, 5) || null;
+    const submittedAlternativeTime = text(body.alternativeTime, 5);
+    const alternativeTime = alternativeDate ? submittedAlternativeTime || null : null;
     const partySize = Number(body.partySize);
     const requestDetails = text(body.requestDetails, 1500);
     const customerName = text(body.customerName, 100);
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
     if (!placeName || !preferredDate || !/^\d{2}:\d{2}$/.test(preferredTime)) {
       return NextResponse.json({ error: "Please enter the place, date, and time." }, { status: 400 });
     }
-    if (alternativeDate && alternativeTime && !/^\d{2}:\d{2}$/.test(alternativeTime)) {
+    if (alternativeDate && (!alternativeTime || !/^\d{2}:\d{2}$/.test(alternativeTime))) {
       return NextResponse.json({ error: "The alternative time is invalid." }, { status: 400 });
     }
     if (!Number.isInteger(partySize) || partySize < 1 || partySize > 20) {
