@@ -1,0 +1,113 @@
+.booking-platform-shell {
+  padding-top: 30px;
+}
+
+.booking-platform-intro.booking-compact-intro {
+  display: grid;
+  grid-template-columns: minmax(260px, .72fr) minmax(0, 1.28fr);
+  align-items: center;
+  gap: 28px;
+  max-width: none;
+  padding: 10px 4px 28px;
+}
+
+.booking-compact-intro h1 {
+  margin: 0;
+  font-size: clamp(27px, 3.2vw, 40px);
+  line-height: 1.18;
+  letter-spacing: -.048em;
+  font-weight: 790;
+}
+
+.booking-compact-intro > p {
+  margin: 0;
+  padding-left: 28px;
+  border-left: 1px solid #dfe3e7;
+  color: #4e5968;
+  font-size: 15px;
+  line-height: 1.72;
+  letter-spacing: -.018em;
+}
+
+.booking-confirmation-note {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  align-items: start;
+  gap: 11px;
+  margin: -8px 0 26px;
+  padding: 15px 16px;
+  border: 1px solid #cfe1ff;
+  border-radius: 15px;
+  color: #335f9e;
+  background: #f5f9ff;
+}
+
+.booking-confirmation-note > span {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 50%;
+  color: #fff;
+  background: #3182f6;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.booking-confirmation-note p {
+  margin: 1px 0 0;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.booking-form-card form > .booking-field:not(.booking-field-wide) {
+  grid-column: 1 / -1;
+  max-width: 240px;
+}
+
+.booking-concern-track {
+  animation-duration: 18s;
+}
+
+.booking-marquee-track {
+  animation-duration: 21s;
+}
+
+.booking-marquee-lane.reverse .booking-marquee-track {
+  animation-duration: 24s;
+}
+
+@media (max-width: 720px) {
+  .booking-platform-shell {
+    padding-top: 22px;
+  }
+
+  .booking-platform-intro.booking-compact-intro {
+    grid-template-columns: 1fr;
+    gap: 9px;
+    padding: 6px 2px 23px;
+  }
+
+  .booking-compact-intro h1 {
+    font-size: clamp(26px, 8vw, 34px);
+  }
+
+  .booking-compact-intro > p {
+    padding-left: 0;
+    border-left: 0;
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .booking-confirmation-note {
+    margin-top: -5px;
+  }
+
+  .booking-form-card form > .booking-field:not(.booking-field-wide) {
+    max-width: none;
+  }
+
+  .booking-concern-track {
+    animation-duration: 16s;
+  }
+}
