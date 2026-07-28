@@ -54,8 +54,9 @@ export async function POST(request: Request) {
     const language = text(body.language, 2);
     const category = text(body.category, 20);
     const rawPlaceName = text(body.placeName, 120);
+    const rawPlaceUrl = text(body.placeUrl, 500);
+    const parsedPlaceUrl = webUrl(rawPlaceUrl);
     const placeAddress = text(body.placeAddress, 300);
-    const placeUrl = webUrl(body.placeUrl);
     const preferredDate = date(body.preferredDate);
     const preferredTime = text(body.preferredTime, 5);
     const partySize = Number(body.partySize);
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Unsupported request." }, { status: 400 });
     }
 
-    // Validate the contact step first so an invalid email never surfaces as a venue URL error.
+    // Step 2: validate contact information independently.
     if (!EMAIL_PATTERN.test(customerEmail)) {
       return NextResponse.json(
         { error: errorMessage(language, "メールアドレスを確認してください。", "Please enter a valid email address.") },
@@ -81,12 +82,17 @@ export async function POST(request: Request) {
       );
     }
 
-    if (placeUrl === null) {
+    // The URL is optional when a place name is provided. A mistyped optional URL
+    // must not block a valid booking request. When URL is the only place identifier,
+    // it still has to be a valid web URL.
+    if (!rawPlaceName && rawPlaceUrl && parsedPlaceUrl === null) {
       return NextResponse.json(
         { error: errorMessage(language, "お店のURLを確認してください。", "Please enter a valid venue URL.") },
         { status: 400 },
       );
     }
+    const placeUrl = parsedPlaceUrl === null ? "" : parsedPlaceUrl;
+
     if ((!rawPlaceName && !placeUrl) || !preferredDate || !/^\d{2}:\d{2}$/.test(preferredTime)) {
       return NextResponse.json(
         { error: errorMessage(language, "お店、希望日時を確認してください。", "Please check the place, date, and time.") },
