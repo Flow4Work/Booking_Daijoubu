@@ -288,6 +288,17 @@ export default function TokanyakuHome() {
   const dayStart = selectedYear === minimumParts.year && selectedMonth === minimumParts.month ? minimumParts.day : 1;
   const dayOptions = Array.from({ length: Math.max(0, maximumDay - dayStart + 1) }, (_, index) => dayStart + index);
   const yearOptions = [minimumParts.year, minimumParts.year + 1, minimumParts.year + 2];
+  const normalizedVenueUrl = normalizeVenueUrl(form.placeUrl);
+  const partySizeNumber = Number(form.partySize);
+  const stepOneReady = Boolean(
+    normalizedVenueUrl &&
+      form.preferredDate &&
+      form.preferredTime &&
+      form.preferredDate >= minimumDate &&
+      Number.isInteger(partySizeNumber) &&
+      partySizeNumber >= 1 &&
+      partySizeNumber <= 20,
+  );
 
   function clearError(field?: ErrorField) {
     if (!field || errorField === field || errorField === "general") {
@@ -445,8 +456,11 @@ export default function TokanyakuHome() {
         .tokanyaku-date-selects{display:grid;grid-template-columns:1.15fr .85fr .85fr;gap:8px;min-width:0}
         .tokanyaku-date-time select{width:100%;min-width:0;min-height:52px;padding:0 13px;border:1px solid #e5e8eb;border-radius:13px;outline:0;color:#191f28;background:#fff;font-size:14px;transition:border-color .1s ease,box-shadow .1s ease}
         .tokanyaku-date-time select:focus{border-color:#8abcfb;box-shadow:0 0 0 4px rgba(49,130,246,.1)}
-        .tokanyaku-field-error{display:block;margin-top:2px;color:#e42939;font-size:11px;font-weight:720;line-height:1.45}
-        .tokanyaku-field.has-error input,.tokanyaku-field.has-error textarea,.tokanyaku-field.has-error select,.tokanyaku-consent.has-error{border-color:#f06c78;box-shadow:0 0 0 3px rgba(228,41,57,.08)}
+        .tokanyaku-field-error{display:block;color:#e42939;font-size:10.5px;font-weight:700;line-height:1.45}
+        .tokanyaku-field.has-error input,.tokanyaku-field.has-error textarea,.tokanyaku-field.has-error select,.tokanyaku-consent.has-error{border-color:#ef8b94;box-shadow:0 0 0 2px rgba(228,41,57,.055)}
+        .tokanyaku-place-meta{grid-column:1/-1;min-height:17px;display:flex;align-items:center}
+        .tokanyaku-place-meta>small{color:#718096;font-size:10.5px;line-height:1.5}
+        .tokanyaku-place-meta>.tokanyaku-field-error{color:#e42939}
 
         .tokanyaku-explore-marquee{display:grid;gap:8px;min-width:0;overflow:hidden}
         .tokanyaku-marquee-lane{overflow:hidden;mask-image:linear-gradient(to right,transparent,#000 5%,#000 95%,transparent);-webkit-mask-image:linear-gradient(to right,transparent,#000 5%,#000 95%,transparent)}
@@ -580,21 +594,31 @@ export default function TokanyakuHome() {
                         value={form.placeUrl}
                         onChange={(event) => update("placeUrl", event.target.value)}
                         onBlur={() => {
-                          if (!form.placeUrl.trim()) return;
-                          const normalized = normalizeVenueUrl(form.placeUrl);
-                          if (normalized) update("placeUrl", normalized);
+                          const value = form.placeUrl.trim();
+                          if (!value) {
+                            clearError("placeUrl");
+                            return;
+                          }
+                          const normalized = normalizeVenueUrl(value);
+                          if (normalized) {
+                            update("placeUrl", normalized);
+                          } else {
+                            showError("placeUrl", copy.urlInvalidError);
+                          }
                         }}
                         placeholder={copy.placeUrlPlaceholder}
                         maxLength={500}
                         aria-invalid={errorField === "placeUrl"}
+                        aria-required="true"
                       />
-                      {renderFieldError("placeUrl")}
                     </label>
                     <label className="tokanyaku-field">
                       <span>{copy.placeName}</span>
                       <input value={form.placeName} onChange={(event) => update("placeName", event.target.value)} placeholder={copy.placeNamePlaceholder} maxLength={120} />
                     </label>
-                    <small>{copy.placeHelp}</small>
+                    <div className="tokanyaku-place-meta">
+                      {errorField === "placeUrl" && error ? <small className="tokanyaku-field-error">{error}</small> : <small>{copy.placeHelp}</small>}
+                    </div>
                   </div>
 
                   <label className={`tokanyaku-field ${errorField === "preferredDate" ? "has-error" : ""}`}>
@@ -635,7 +659,7 @@ export default function TokanyakuHome() {
                   </label>
 
                   {error && errorField === "general" && <p className="tokanyaku-error tokanyaku-full">{error}</p>}
-                  <button className="tokanyaku-submit tokanyaku-full" type="button" onClick={continueToContact}>{copy.next}</button>
+                  <button className="tokanyaku-submit tokanyaku-full" disabled={!stepOneReady} type="button" onClick={continueToContact}>{copy.next}</button>
                 </div>
               ) : (
                 <div className="tokanyaku-step-grid">
