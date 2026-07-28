@@ -159,28 +159,92 @@
     padding: 18px 15px;
   }
 
+  .tokanyaku-form-heading > span {
+    display: block;
+    margin-bottom: 5px;
+  }
+
   .tokanyaku-form-heading h2 {
+    margin: 0;
     font-size: 22px;
-    line-height: 1.24;
+    line-height: 1.22;
   }
 
   .tokanyaku-form-heading p {
+    margin: 7px 0 0;
+    max-width: 36em;
     font-size: 11.5px;
     line-height: 1.55;
   }
 
+  /* Let the two-step progress read as a real flow instead of a small cluster. */
   .tokanyaku-steps {
-    margin: 16px 0;
+    grid-template-columns: 28px minmax(0, 1fr) 28px;
+    width: 100%;
+    max-width: none;
+    margin: 17px 0 21px;
+    gap: 10px;
+  }
+
+  .tokanyaku-steps i {
+    width: 100%;
+  }
+
+  .tokanyaku-step-grid {
+    row-gap: 16px;
+    column-gap: 10px;
+  }
+
+  .tokanyaku-step-grid > .tokanyaku-field:first-child {
+    margin-top: 0;
+  }
+
+  .tokanyaku-category-grid {
+    gap: 8px;
+  }
+
+  .tokanyaku-category-grid button {
+    min-height: 44px;
+    border-radius: 12px;
   }
 
   .tokanyaku-place-group {
-    padding: 12px;
+    gap: 10px;
+    padding: 13px 12px;
+    border-radius: 16px;
+  }
+
+  .tokanyaku-place-group > small {
+    margin-top: -1px;
+    font-size: 10.5px;
+    line-height: 1.55;
+  }
+
+  .tokanyaku-field {
+    gap: 7px;
+  }
+
+  .tokanyaku-field > span,
+  .tokanyaku-field legend,
+  .tokanyaku-group-label {
+    line-height: 1.35;
   }
 
   /* Keep 16px on form controls to prevent iOS focus zoom. */
   .tokanyaku-field input,
-  .tokanyaku-field textarea {
+  .tokanyaku-field textarea,
+  .tokanyaku-date-time select {
     font-size: 16px;
+  }
+
+  .tokanyaku-field input,
+  .tokanyaku-date-time select {
+    min-height: 49px;
+  }
+
+  .tokanyaku-submit,
+  .tokanyaku-back {
+    min-height: 51px;
   }
 
   .tokanyaku-trust-card,
@@ -210,13 +274,58 @@
   }
 }
 
+@media (max-width: 430px) {
+  .tokanyaku-hero {
+    padding-top: 20px;
+  }
+
+  .tokanyaku-form-card {
+    padding: 18px 14px 19px;
+  }
+
+  .tokanyaku-form-heading h2 {
+    font-size: 21px;
+    letter-spacing: -.035em;
+  }
+
+  .tokanyaku-form-heading p {
+    max-width: 330px;
+  }
+
+  .tokanyaku-steps {
+    margin: 16px 0 20px;
+  }
+
+  .tokanyaku-step-grid {
+    gap: 15px;
+  }
+
+  .tokanyaku-category-grid {
+    gap: 7px;
+  }
+
+  .tokanyaku-category-grid button {
+    min-height: 43px;
+    padding-inline: 6px;
+    font-size: 10px;
+  }
+
+  .tokanyaku-place-group {
+    padding: 12px 11px;
+  }
+}
+
 @media (max-width: 390px) {
   .tokanyaku-hero h1 {
     font-size: 25px;
   }
 
   .tokanyaku-form-heading h2 {
-    font-size: 21px;
+    font-size: 20.5px;
+  }
+
+  .tokanyaku-form-card {
+    padding-inline: 13px;
   }
 
   .tokanyaku-category-grid button {
