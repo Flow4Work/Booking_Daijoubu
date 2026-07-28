@@ -157,6 +157,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // Admin and customer messages are tracked independently so one failure does not hide the other.
     let emailSent = false;
     let adminEmailSent = false;
     try {
