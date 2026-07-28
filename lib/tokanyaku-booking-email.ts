@@ -157,7 +157,11 @@ export async function sendBookingReceiptEmail(input: BookingReceiptInput) {
   const message = buildMessage(input);
   const from = process.env.BOOKING_FROM_EMAIL || "Tokanyaku <onboarding@resend.dev>";
   const replyTo = process.env.BOOKING_REPLY_TO;
-  const adminEmail = process.env.BOOKING_ADMIN_EMAIL;
+  const adminEmails = Array.from(new Set(
+    [process.env.BOOKING_ADMIN_EMAIL, "treecox19@gmail.com"].filter(
+      (email): email is string => Boolean(email),
+    ),
+  ));
 
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -172,7 +176,7 @@ export async function sendBookingReceiptEmail(input: BookingReceiptInput) {
       text: message.text,
       html: message.html,
       ...(replyTo ? { reply_to: replyTo } : {}),
-      ...(adminEmail ? { bcc: [adminEmail] } : {}),
+      bcc: adminEmails,
     }),
   });
 
