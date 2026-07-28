@@ -39,7 +39,6 @@ const COPY = {
     explore: "お店を探す",
     title: "韓国のお店予約を、もっと簡単に。",
     description: "InstagramやNaver Mapで見つけたお店もOK。お店・日時・人数を送れば、まず無料で空席を確認します。",
-    socialHint: "Instagram / Naver Map / Google Maps のURLに対応",
     formLabel: "予約リクエスト",
     formTitle: "まず3つだけ教えてください",
     formDescription: "お店、希望日時、人数。連絡先や細かい希望は次の画面で入力できます。",
@@ -84,7 +83,7 @@ const COPY = {
     consentError: "同意が必要です。",
     submitError: "送信できませんでした。もう一度お試しください。",
     exploreTitle: "まだお店が決まっていませんか？",
-    exploreText: "今はNaver Map検索を使えます。おすすめ表示は次の改善で追加予定です。",
+    exploreText: "気になるカテゴリーから探して、そのまま予約リクエストへ。",
     footer: "Tokanyaku · Seoul booking concierge",
   },
   en: {
@@ -92,7 +91,6 @@ const COPY = {
     explore: "Find a place",
     title: "Book places in Korea, without the hassle.",
     description: "Found it on Instagram or Naver Map? Send the place, time, and group size. We check availability for free first.",
-    socialHint: "Instagram / Naver Map / Google Maps links supported",
     formLabel: "Booking request",
     formTitle: "Start with just 3 things",
     formDescription: "Place, preferred time, and group size. Contact details and special requests come next.",
@@ -137,27 +135,60 @@ const COPY = {
     consentError: "Agreement is required.",
     submitError: "We could not send your request. Please try again.",
     exploreTitle: "Still deciding where to go?",
-    exploreText: "Naver Map search is available for now. Curated recommendations will be added in the next improvement.",
+    exploreText: "Browse a category, find a place, then send a booking request.",
     footer: "Tokanyaku · Seoul booking concierge",
   },
+} as const;
+
+const CONCERNS = {
+  ja: [
+    ["📱", "韓国の電話番号がない"],
+    ["🗣️", "韓国語で予約できない"],
+    ["🔐", "韓国の本人認証ができない"],
+    ["💳", "海外カードが使えない"],
+    ["☎️", "お店に電話できない"],
+    ["💰", "予約金の支払い方がわからない"],
+    ["🙌", "Tokanyakuに任せれば大丈夫"],
+  ],
+  en: [
+    ["📱", "No Korean phone number"],
+    ["🗣️", "Can’t book in Korean"],
+    ["🔐", "No Korean identity verification"],
+    ["💳", "International card rejected"],
+    ["☎️", "Can’t call the venue"],
+    ["💰", "Not sure how to pay the deposit"],
+    ["🙌", "Let Tokanyaku handle it"],
+  ],
 } as const;
 
 const DISCOVERY = {
   ja: [
     ["☕", "ソンスのカフェ", "ソンス カフェ"],
     ["🍜", "ホンデの人気店", "ホンデ 人気 レストラン"],
+    ["🍲", "韓国料理", "ソウル 韓国料理"],
     ["🥩", "韓国焼肉", "ソウル 韓国焼肉"],
+    ["🥐", "ベーカリー", "ソウル ベーカリー"],
+    ["🥗", "ベジタリアン", "ソウル ベジタリアン レストラン"],
     ["✂️", "ヘアサロン", "ソウル ヘアサロン"],
-    ["💅", "ネイル", "ソウル ネイルサロン"],
+    ["💅", "ネイルサロン", "ソウル ネイルサロン"],
     ["✨", "スキンケア", "ソウル スキンケア"],
+    ["💄", "メイクアップ", "ソウル メイクアップサロン"],
+    ["🌿", "スパ・マッサージ", "ソウル スパ マッサージ"],
+    ["🍸", "ルーフトップバー", "ソウル ルーフトップバー"],
   ],
   en: [
     ["☕", "Seongsu cafés", "Seongsu cafe"],
     ["🍜", "Hongdae restaurants", "Hongdae popular restaurants"],
+    ["🍲", "Korean food", "Seoul Korean food"],
     ["🥩", "Korean BBQ", "Seoul Korean BBQ"],
+    ["🥐", "Bakeries", "Seoul bakery"],
+    ["🥗", "Vegetarian food", "Seoul vegetarian restaurant"],
     ["✂️", "Hair salons", "Seoul hair salon"],
     ["💅", "Nail salons", "Seoul nail salon"],
     ["✨", "Skin care", "Seoul skin care"],
+    ["💄", "Makeup studios", "Seoul makeup studio"],
+    ["🌿", "Spa & massage", "Seoul spa massage"],
+    ["🍸", "Rooftop bars", "Seoul rooftop bar"],
   ],
 } as const;
 
@@ -175,6 +206,9 @@ export default function TokanyakuHome() {
   const [error, setError] = useState("");
   const [requestCode, setRequestCode] = useState("");
   const copy = COPY[language];
+  const discovery = DISCOVERY[language];
+  const discoveryTop = discovery.slice(0, 6);
+  const discoveryBottom = discovery.slice(6);
 
   const minimumDate = useMemo(() => {
     const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -254,6 +288,45 @@ export default function TokanyakuHome() {
 
   return (
     <main className="tokanyaku-page">
+      <style>{`
+        .tokanyaku-concern-strip{width:100%;overflow:hidden;border-bottom:1px solid #edf0f2;background:#fff;mask-image:linear-gradient(to right,transparent,#000 5%,#000 95%,transparent);-webkit-mask-image:linear-gradient(to right,transparent,#000 5%,#000 95%,transparent)}
+        .tokanyaku-concern-track{display:flex;align-items:center;gap:8px;width:max-content;padding:7px 0;animation:tokConcernScroll 20s linear infinite;will-change:transform}
+        .tokanyaku-concern-track:hover{animation-play-state:paused}
+        .tokanyaku-concern-chip{display:inline-flex;align-items:center;gap:6px;min-height:31px;padding:0 12px;border:1px solid #e5e8eb;border-radius:999px;background:#fff;color:#4e5968;font-size:10.5px;font-weight:680;white-space:nowrap;box-shadow:0 3px 10px rgba(0,27,55,.025)}
+        .tokanyaku-concern-chip b{font-size:13px}
+        .tokanyaku-concern-chip.tokanyaku-solution{border-color:#cfe1ff;background:#f2f7ff;color:#1b64da;font-weight:760}
+        @keyframes tokConcernScroll{to{transform:translateX(-50%)}}
+
+        .tokanyaku-explore-marquee{display:grid;gap:8px;min-width:0;overflow:hidden}
+        .tokanyaku-marquee-lane{overflow:hidden;mask-image:linear-gradient(to right,transparent,#000 5%,#000 95%,transparent);-webkit-mask-image:linear-gradient(to right,transparent,#000 5%,#000 95%,transparent)}
+        .tokanyaku-marquee-track{display:flex;gap:8px;width:max-content;padding:2px 4px;animation:tokExploreScroll 23s linear infinite;will-change:transform}
+        .tokanyaku-marquee-lane.reverse .tokanyaku-marquee-track{animation-direction:reverse;animation-duration:26s}
+        .tokanyaku-marquee-track:hover,.tokanyaku-marquee-track:focus-within{animation-play-state:paused}
+        .tokanyaku-marquee-track a{display:inline-flex;align-items:center;gap:7px;min-height:42px;padding:0 12px;border:1px solid #e5e8eb;border-radius:12px;background:#fff;white-space:nowrap;box-shadow:0 4px 12px rgba(0,27,55,.035);transition:border-color .12s ease,transform .12s ease,box-shadow .12s ease}
+        .tokanyaku-marquee-track a:hover{transform:translateY(-1px);border-color:#a9cbff;box-shadow:0 7px 17px rgba(49,130,246,.08)}
+        .tokanyaku-marquee-track a>span{font-size:15px}
+        .tokanyaku-marquee-track a strong{font-size:10.5px;font-weight:740}
+        .tokanyaku-marquee-track a b{color:#8b95a1;font-size:10px}
+        @keyframes tokExploreScroll{to{transform:translateX(-50%)}}
+
+        @media(max-width:720px){
+          .tokanyaku-concern-strip{mask-image:none;-webkit-mask-image:none}
+          .tokanyaku-concern-track{gap:6px;padding:6px 0;animation-duration:17s}
+          .tokanyaku-concern-chip{min-height:29px;padding:0 10px;font-size:10px}
+          .tokanyaku-concern-chip b{font-size:12px}
+          .tokanyaku-marquee-lane{mask-image:none;-webkit-mask-image:none}
+          .tokanyaku-marquee-track{animation-duration:19s}
+          .tokanyaku-marquee-lane.reverse .tokanyaku-marquee-track{animation-duration:22s}
+          .tokanyaku-marquee-track a{min-height:40px;padding:0 11px}
+          .tokanyaku-marquee-track a strong{font-size:10px}
+        }
+        @media(prefers-reduced-motion:reduce){
+          .tokanyaku-concern-strip,.tokanyaku-marquee-lane{overflow-x:auto;mask-image:none;-webkit-mask-image:none}
+          .tokanyaku-concern-track,.tokanyaku-marquee-track{animation:none}
+          .tokanyaku-concern-chip[aria-hidden="true"],.tokanyaku-marquee-track a[aria-hidden="true"]{display:none}
+        }
+      `}</style>
+
       <header className="tokanyaku-header">
         <a className="tokanyaku-logo" href="/" aria-label="Tokanyaku home">
           <span>渡</span>
@@ -273,12 +346,25 @@ export default function TokanyakuHome() {
         </nav>
       </header>
 
+      <section className="tokanyaku-concern-strip" aria-label="Booking concerns">
+        <div className="tokanyaku-concern-track">
+          {[...CONCERNS[language], ...CONCERNS[language]].map(([icon, label], index) => (
+            <span
+              className={`tokanyaku-concern-chip ${index % CONCERNS[language].length === CONCERNS[language].length - 1 ? "tokanyaku-solution" : ""}`}
+              key={`${label}-${index}`}
+              aria-hidden={index >= CONCERNS[language].length}
+            >
+              <b>{icon}</b>{label}
+            </span>
+          ))}
+        </div>
+      </section>
+
       <section className="tokanyaku-hero">
         <div>
           <span className="tokanyaku-eyebrow">KOREA BOOKING CONCIERGE</span>
           <h1>{copy.title}</h1>
           <p>{copy.description}</p>
-          <small>{copy.socialHint}</small>
         </div>
       </section>
 
@@ -396,9 +482,24 @@ export default function TokanyakuHome() {
           <h2>{copy.exploreTitle}</h2>
           <p>{copy.exploreText}</p>
         </div>
-        <div className="tokanyaku-discovery-grid">
-          {DISCOVERY[language].map(([icon, label, query]) => (
-            <a key={query} href={naverMapSearch(query)} target="_blank" rel="noreferrer noopener"><span>{icon}</span><strong>{label}</strong><b>↗</b></a>
+        <div className="tokanyaku-explore-marquee">
+          {[discoveryTop, discoveryBottom].map((lane, laneIndex) => (
+            <div className={`tokanyaku-marquee-lane ${laneIndex === 1 ? "reverse" : ""}`} key={laneIndex}>
+              <div className="tokanyaku-marquee-track">
+                {[...lane, ...lane].map(([icon, label, query], index) => (
+                  <a
+                    key={`${query}-${index}`}
+                    href={naverMapSearch(query)}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    aria-hidden={index >= lane.length}
+                    tabIndex={index >= lane.length ? -1 : 0}
+                  >
+                    <span>{icon}</span><strong>{label}</strong><b>↗</b>
+                  </a>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       </section>
