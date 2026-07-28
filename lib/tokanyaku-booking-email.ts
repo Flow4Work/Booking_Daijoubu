@@ -199,11 +199,9 @@ export async function sendBookingReceiptEmail(input: BookingReceiptInput): Promi
 
   const from = process.env.BOOKING_FROM_EMAIL || "Tokanyaku <onboarding@resend.dev>";
   const replyTo = process.env.BOOKING_REPLY_TO;
-  const adminEmails = Array.from(new Set(
-    [process.env.BOOKING_ADMIN_EMAIL, "treecox19@gmail.com"].filter(
-      (email): email is string => Boolean(email),
-    ),
-  ));
+  // Temporary Resend test mode: onboarding@resend.dev can deliver to the account owner's email only.
+  // Switch this back to BOOKING_ADMIN_EMAIL/treecox19@gmail.com after a Tokanyaku sending domain is verified.
+  const adminEmails = ["flow4work@gmail.com"];
 
   const adminMessage = buildAdminMessage(input);
   const customerMessage = buildCustomerMessage(input);
