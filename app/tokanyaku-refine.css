@@ -1,0 +1,231 @@
+/* Tokanyaku density + wrapping refinement */
+
+/* The hero already explains URL support; the pill repeats the same message. */
+.tokanyaku-hero small {
+  display: none !important;
+}
+
+/* Keep the first screen compact on desktop and control headline wrapping. */
+.tokanyaku-hero {
+  padding: 36px 0 20px;
+}
+
+.tokanyaku-hero > div {
+  max-width: 1040px;
+}
+
+.tokanyaku-hero h1 {
+  margin: 8px 0 10px;
+  max-width: none;
+  font-size: clamp(30px, 3.45vw, 42px);
+  line-height: 1.12;
+  letter-spacing: -.045em;
+  white-space: nowrap;
+  text-wrap: nowrap;
+}
+
+.tokanyaku-hero p {
+  max-width: 860px;
+  font-size: 14px;
+  line-height: 1.62;
+  text-wrap: pretty;
+}
+
+/* Prevent oversized section titles from consuming vertical space. */
+.tokanyaku-form-heading h2 {
+  margin-top: 6px;
+  font-size: clamp(24px, 2.45vw, 30px);
+  line-height: 1.22;
+  letter-spacing: -.038em;
+  text-wrap: balance;
+}
+
+.tokanyaku-form-heading p,
+.tokanyaku-explore p,
+.tokanyaku-trust-card p {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.58;
+  text-wrap: pretty;
+}
+
+.tokanyaku-steps {
+  margin: 18px 0;
+}
+
+.tokanyaku-form-card {
+  padding: 28px;
+}
+
+.tokanyaku-place-group {
+  padding: 14px;
+}
+
+.tokanyaku-place-group > small {
+  font-size: 10.5px;
+  line-height: 1.5;
+}
+
+.tokanyaku-category-grid button,
+.tokanyaku-header nav > button,
+.tokanyaku-language button,
+.tokanyaku-field > span,
+.tokanyaku-field legend,
+.tokanyaku-group-label {
+  white-space: nowrap;
+}
+
+.tokanyaku-field input,
+.tokanyaku-field textarea {
+  font-size: 13px;
+}
+
+.tokanyaku-trust-card,
+.tokanyaku-price-card {
+  padding: 20px;
+}
+
+.tokanyaku-trust-card ol {
+  gap: 11px;
+  margin-top: 16px;
+}
+
+.tokanyaku-trust-card li strong,
+.tokanyaku-price-card strong {
+  font-size: 11.5px;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.tokanyaku-explore {
+  gap: 22px;
+  padding: 24px;
+}
+
+.tokanyaku-explore h2 {
+  margin-top: 6px;
+  font-size: 23px;
+  line-height: 1.24;
+  letter-spacing: -.035em;
+  text-wrap: balance;
+}
+
+.tokanyaku-discovery-grid {
+  animation: tokanyaku-discovery-drift 5.8s ease-in-out infinite alternate;
+  will-change: transform;
+}
+
+.tokanyaku-discovery-grid a {
+  min-height: 46px;
+  padding: 0 12px;
+}
+
+.tokanyaku-discovery-grid a strong {
+  font-size: 11.5px;
+}
+
+@keyframes tokanyaku-discovery-drift {
+  from { transform: translateX(-5px); }
+  to { transform: translateX(5px); }
+}
+
+@media (max-width: 900px) {
+  .tokanyaku-hero h1 {
+    white-space: normal;
+    text-wrap: balance;
+  }
+}
+
+@media (max-width: 720px) {
+  .tokanyaku-hero {
+    padding: 24px 0 16px;
+  }
+
+  .tokanyaku-hero h1 {
+    margin: 7px 0 9px;
+    font-size: clamp(26px, 7.8vw, 31px);
+    line-height: 1.18;
+    letter-spacing: -.04em;
+    white-space: normal;
+    text-wrap: balance;
+  }
+
+  .tokanyaku-hero p {
+    font-size: 12px;
+    line-height: 1.58;
+  }
+
+  .tokanyaku-form-card {
+    padding: 18px 15px;
+  }
+
+  .tokanyaku-form-heading h2 {
+    font-size: 22px;
+    line-height: 1.24;
+  }
+
+  .tokanyaku-form-heading p {
+    font-size: 11.5px;
+    line-height: 1.55;
+  }
+
+  .tokanyaku-steps {
+    margin: 16px 0;
+  }
+
+  .tokanyaku-place-group {
+    padding: 12px;
+  }
+
+  /* Keep 16px on form controls to prevent iOS focus zoom. */
+  .tokanyaku-field input,
+  .tokanyaku-field textarea {
+    font-size: 16px;
+  }
+
+  .tokanyaku-trust-card,
+  .tokanyaku-price-card {
+    padding: 17px;
+  }
+
+  .tokanyaku-explore {
+    padding: 18px 14px;
+  }
+
+  .tokanyaku-explore h2 {
+    font-size: 21px;
+    line-height: 1.28;
+  }
+
+  .tokanyaku-explore p {
+    font-size: 11.5px;
+  }
+
+  .tokanyaku-discovery-grid {
+    animation-duration: 5.2s;
+  }
+
+  .tokanyaku-discovery-grid a {
+    min-height: 48px;
+  }
+}
+
+@media (max-width: 390px) {
+  .tokanyaku-hero h1 {
+    font-size: 25px;
+  }
+
+  .tokanyaku-form-heading h2 {
+    font-size: 21px;
+  }
+
+  .tokanyaku-category-grid button {
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tokanyaku-discovery-grid {
+    animation: none;
+  }
+}
