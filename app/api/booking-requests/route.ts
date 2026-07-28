@@ -59,7 +59,7 @@ export async function POST(request: Request) {
 
     // Honeypot: bots get a harmless success response without storing anything.
     if (text(body.website, 200)) {
-      return NextResponse.json({ requestCode: requestCode(), emailSent: true }, { status: 201 });
+      return NextResponse.json({ requestCode: requestCode(), emailSent: true, adminEmailSent: true }, { status: 201 });
     }
 
     const language = text(body.language, 2);
@@ -82,7 +82,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Step 1 is authoritative: a venue URL is required and must be valid.
     if (!rawPlaceUrl) {
       return validationError(language, 1, "placeUrl", "お店のURLを入力してください。", "Please enter the venue URL.");
     }
@@ -110,7 +109,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Step 2 only validates contact/consent fields.
     if (!EMAIL_PATTERN.test(customerEmail)) {
       return validationError(language, 2, "customerEmail", "メールアドレスを確認してください。", "Please enter a valid email address.");
     }
@@ -160,8 +158,9 @@ export async function POST(request: Request) {
     }
 
     let emailSent = false;
+    let adminEmailSent = false;
     try {
-      emailSent = await sendBookingReceiptEmail({
+      const emailResult = await sendBookingReceiptEmail({
         requestCode: code,
         language: language as "ja" | "en",
         category: category as "restaurant" | "hair" | "nail" | "beauty",
@@ -174,11 +173,12 @@ export async function POST(request: Request) {
         requestDetails: requestDetails || null,
         customerEmail,
       });
+      emailSent = emailResult.customerSent;
+      adminEmailSent = emailResult.adminSent;
     } catch (emailError) {
-      console.error("booking receipt email threw", emailError);
+      console.error("booking email dispatch threw", emailError);
     }
 
-    // Public-key fallback can insert requests but intentionally has no UPDATE permission.
     if (emailSent && hasSupabasePrivilegedKey()) {
       const { error: updateError } = await supabase
         .from("booking_requests")
@@ -187,7 +187,7 @@ export async function POST(request: Request) {
       if (updateError) console.error("email sent timestamp update failed", updateError);
     }
 
-    return NextResponse.json({ requestCode: code, emailSent }, { status: 201 });
+    return NextResponse.json({ requestCode: code, emailSent, adminEmailSent }, { status: 201 });
   } catch (error) {
     console.error("booking request API failed", error);
     return NextResponse.json({ error: "Invalid booking request." }, { status: 400 });
