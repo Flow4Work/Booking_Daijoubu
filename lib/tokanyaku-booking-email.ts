@@ -15,6 +15,11 @@ type BookingReceiptInput = {
   customerEmail: string;
 };
 
+export type BookingEmailResult = {
+  customerSent: boolean;
+  adminSent: boolean;
+};
+
 const CATEGORY_LABELS: Record<Language, Record<Category, string>> = {
   ja: {
     restaurant: "飲食店・カフェ",
@@ -115,7 +120,16 @@ function buildRows(input: BookingReceiptInput) {
   return rows;
 }
 
-function buildMessage(input: BookingReceiptInput) {
+function renderRowsHtml(rows: Array<[string, string, boolean?]>) {
+  return rows.map(([label, value, isLink]) => {
+    const rendered = isLink
+      ? `<a href="${escapeHtml(value)}" style="color:#1b64da;text-decoration:none;word-break:break-all">${escapeHtml(value)}</a>`
+      : escapeHtml(value);
+    return `<tr><td style="padding:10px 12px;color:#6b7684;font-size:13px;vertical-align:top;width:125px;border-bottom:1px solid #eef1f4">${escapeHtml(label)}</td><td style="padding:10px 12px;color:#191f28;font-size:13px;line-height:1.6;border-bottom:1px solid #eef1f4">${rendered}</td></tr>`;
+  }).join("");
+}
+
+function buildCustomerMessage(input: BookingReceiptInput) {
   const rows = buildRows(input);
   const japanese = input.language === "ja";
   const subject = japanese
@@ -134,27 +148,55 @@ function buildMessage(input: BookingReceiptInput) {
 
   const textRows = rows.map(([label, value]) => `${label}: ${value}`).join("\n");
   const text = `${intro}\n\n${textRows}\n\n${pending}\n${responseTime}\n\nTokanyaku`;
-
-  const htmlRows = rows.map(([label, value, isLink]) => {
-    const rendered = isLink
-      ? `<a href="${escapeHtml(value)}" style="color:#1b64da;text-decoration:none;word-break:break-all">${escapeHtml(value)}</a>`
-      : escapeHtml(value);
-    return `<tr><td style="padding:10px 12px;color:#6b7684;font-size:13px;vertical-align:top;width:125px;border-bottom:1px solid #eef1f4">${escapeHtml(label)}</td><td style="padding:10px 12px;color:#191f28;font-size:13px;line-height:1.6;border-bottom:1px solid #eef1f4">${rendered}</td></tr>`;
-  }).join("");
-
+  const htmlRows = renderRowsHtml(rows);
   const html = `<!doctype html><html lang="${japanese ? "ja" : "en"}"><body style="margin:0;background:#f2f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans JP',sans-serif;color:#191f28"><div style="max-width:620px;margin:0 auto;padding:32px 16px"><div style="background:#fff;border-radius:20px;padding:30px;box-shadow:0 8px 28px rgba(0,27,55,.06)"><div style="display:inline-block;padding:7px 10px;border-radius:9px;background:#eff6ff;color:#1b64da;font-size:12px;font-weight:700">Tokanyaku</div><h1 style="margin:18px 0 10px;font-size:24px;line-height:1.35">${japanese ? "予約リクエストを受け付けました" : "We’ve received your booking request"}</h1><p style="margin:0 0 22px;color:#4e5968;font-size:14px;line-height:1.75">${escapeHtml(intro)}</p><table role="presentation" style="width:100%;border-collapse:collapse;background:#fafbfc;border-radius:14px;overflow:hidden">${htmlRows}</table><div style="margin-top:22px;padding:16px;border-radius:14px;background:#fff8e8;color:#6b4f16;font-size:13px;line-height:1.7"><strong>${japanese ? "まだ予約は確定していません。" : "This is not yet a confirmed booking."}</strong><br>${escapeHtml(pending)}</div><p style="margin:20px 0 0;color:#6b7684;font-size:12px;line-height:1.7">${escapeHtml(responseTime)}</p></div></div></body></html>`;
 
   return { subject, text, html };
 }
 
-export async function sendBookingReceiptEmail(input: BookingReceiptInput) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) {
-    console.warn("RESEND_API_KEY is not configured; booking receipt email skipped");
+function buildAdminMessage(input: BookingReceiptInput) {
+  const rows = [["Customer email", input.customerEmail] as [string, string], ...buildRows(input)];
+  const textRows = rows.map(([label, value]) => `${label}: ${value}`).join("\n");
+  const subject = `[Tokanyaku] New booking request · ${input.requestCode}`;
+  const text = `New Tokanyaku booking request\n\n${textRows}`;
+  const htmlRows = renderRowsHtml(rows);
+  const html = `<!doctype html><html lang="en"><body style="margin:0;background:#f2f4f6;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Noto Sans JP',sans-serif;color:#191f28"><div style="max-width:620px;margin:0 auto;padding:32px 16px"><div style="background:#fff;border-radius:20px;padding:30px"><div style="display:inline-block;padding:7px 10px;border-radius:9px;background:#eff6ff;color:#1b64da;font-size:12px;font-weight:700">Tokanyaku Admin</div><h1 style="margin:18px 0 18px;font-size:22px">New booking request</h1><table role="presentation" style="width:100%;border-collapse:collapse;background:#fafbfc;border-radius:14px;overflow:hidden">${htmlRows}</table></div></div></body></html>`;
+  return { subject, text, html };
+}
+
+async function sendResendEmail(
+  apiKey: string,
+  payload: Record<string, unknown>,
+  logLabel: "admin" | "customer",
+) {
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      console.error(`Tokanyaku ${logLabel} email failed`, response.status, await response.text());
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error(`Tokanyaku ${logLabel} email threw`, error);
     return false;
   }
+}
 
-  const message = buildMessage(input);
+export async function sendBookingReceiptEmail(input: BookingReceiptInput): Promise<BookingEmailResult> {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.warn("RESEND_API_KEY is not configured; booking emails skipped");
+    return { customerSent: false, adminSent: false };
+  }
+
   const from = process.env.BOOKING_FROM_EMAIL || "Tokanyaku <onboarding@resend.dev>";
   const replyTo = process.env.BOOKING_REPLY_TO;
   const adminEmails = Array.from(new Set(
@@ -163,26 +205,38 @@ export async function sendBookingReceiptEmail(input: BookingReceiptInput) {
     ),
   ));
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
+  const adminMessage = buildAdminMessage(input);
+  const customerMessage = buildCustomerMessage(input);
+
+  // Admin notification is intentionally independent from the customer receipt.
+  // A customer-address or sender-domain problem must not suppress the operator alert.
+  const adminSent = adminEmails.length > 0
+    ? await sendResendEmail(
+        apiKey,
+        {
+          from,
+          to: adminEmails,
+          reply_to: input.customerEmail,
+          subject: adminMessage.subject,
+          text: adminMessage.text,
+          html: adminMessage.html,
+        },
+        "admin",
+      )
+    : false;
+
+  const customerSent = await sendResendEmail(
+    apiKey,
+    {
       from,
       to: [input.customerEmail],
-      subject: message.subject,
-      text: message.text,
-      html: message.html,
+      subject: customerMessage.subject,
+      text: customerMessage.text,
+      html: customerMessage.html,
       ...(replyTo ? { reply_to: replyTo } : {}),
-      bcc: adminEmails,
-    }),
-  });
+    },
+    "customer",
+  );
 
-  if (!response.ok) {
-    console.error("Tokanyaku booking receipt email failed", response.status, await response.text());
-    return false;
-  }
-  return true;
+  return { customerSent, adminSent };
 }
