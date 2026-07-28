@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 
 type Language = "ja" | "en";
 type Category = "restaurant" | "hair" | "nail" | "beauty";
+type DatePart = "year" | "month" | "day";
 
 type FormState = {
   category: Category;
@@ -38,10 +39,10 @@ const COPY = {
     request: "予約を依頼する",
     explore: "お店を探す",
     title: "韓国のお店予約を、もっと簡単に。",
-    description: "InstagramやNaver Mapで見つけたお店もOK。お店・日時・人数を送れば、まず無料で空席を確認します。",
+    description: "InstagramやNaver Mapで見つけたお店もOK。店名・日時・人数だけで、まず無料で空席確認。",
     formLabel: "予約リクエスト",
     formTitle: "まず3つだけ教えてください",
-    formDescription: "お店、希望日時、人数。連絡先や細かい希望は次の画面で入力できます。",
+    formDescription: "お店、希望日時、人数。連絡先や細かい希望は次へ。",
     category: "予約の種類",
     categories: {
       restaurant: "飲食店・カフェ",
@@ -53,9 +54,13 @@ const COPY = {
     placeName: "お店の名前",
     placeNamePlaceholder: "例：ソンス○○食堂",
     placeUrl: "お店のURL",
-    placeUrlPlaceholder: "Instagram / Naver Map / Google Maps のURL",
-    placeHelp: "名前かURLのどちらか一方だけでも大丈夫です。Instagramで見つけた投稿URLもそのまま送れます。",
+    placeUrlPlaceholder: "Instagram / Naver / Google Maps URL",
+    placeHelp: "店名かURL、どちらか一つでOK。Instagramの投稿URLも使えます。",
     preferred: "希望日時",
+    year: "年",
+    month: "月",
+    day: "日",
+    time: "時間",
     partySize: "人数",
     next: "次へ：連絡先を入力",
     back: "戻る",
@@ -93,7 +98,7 @@ const COPY = {
     description: "Found it on Instagram or Naver Map? Send the place, time, and group size. We check availability for free first.",
     formLabel: "Booking request",
     formTitle: "Start with just 3 things",
-    formDescription: "Place, preferred time, and group size. Contact details and special requests come next.",
+    formDescription: "Place, preferred time, and group size. Contact details come next.",
     category: "Booking type",
     categories: {
       restaurant: "Restaurant / café",
@@ -105,9 +110,13 @@ const COPY = {
     placeName: "Place name",
     placeNamePlaceholder: "Example: Seongsu restaurant name",
     placeUrl: "Place URL",
-    placeUrlPlaceholder: "Instagram / Naver Map / Google Maps URL",
-    placeHelp: "A name or a URL is enough to start. You can paste the Instagram post where you found the place.",
+    placeUrlPlaceholder: "Instagram / Naver / Google Maps URL",
+    placeHelp: "A place name or URL is enough. Instagram post links work too.",
     preferred: "Preferred date and time",
+    year: "Year",
+    month: "Month",
+    day: "Day",
+    time: "Time",
     partySize: "Guests",
     next: "Next: contact details",
     back: "Back",
@@ -193,9 +202,20 @@ const DISCOVERY = {
 } as const;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MONTHS = Array.from({ length: 12 }, (_, index) => index + 1);
+const TIME_OPTIONS = Array.from({ length: 48 }, (_, index) => {
+  const hours = Math.floor(index / 2);
+  const minutes = index % 2 === 0 ? "00" : "30";
+  return `${String(hours).padStart(2, "0")}:${minutes}`;
+});
 
 function naverMapSearch(query: string) {
   return `https://map.naver.com/p/search/${encodeURIComponent(query)}`;
+}
+
+function formatDate(year: string, month: string, day: string) {
+  if (!year || !month || !day) return "";
+  return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 }
 
 export default function TokanyakuHome() {
@@ -205,10 +225,6 @@ export default function TokanyakuHome() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [requestCode, setRequestCode] = useState("");
-  const copy = COPY[language];
-  const discovery = DISCOVERY[language];
-  const discoveryTop = discovery.slice(0, 6);
-  const discoveryBottom = discovery.slice(6);
 
   const minimumDate = useMemo(() => {
     const tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
@@ -220,8 +236,56 @@ export default function TokanyakuHome() {
     }).format(tomorrow);
   }, []);
 
+  const minimumParts = useMemo(() => {
+    const [year, month, day] = minimumDate.split("-").map(Number);
+    return { year, month, day };
+  }, [minimumDate]);
+
+  const [dateParts, setDateParts] = useState(() => ({
+    year: minimumDate.slice(0, 4),
+    month: "",
+    day: "",
+  }));
+
+  const copy = COPY[language];
+  const discovery = DISCOVERY[language];
+  const discoveryTop = discovery.slice(0, 6);
+  const discoveryBottom = discovery.slice(6);
+  const selectedYear = Number(dateParts.year || minimumParts.year);
+  const selectedMonth = Number(dateParts.month || 1);
+  const maximumDay = new Date(selectedYear, selectedMonth, 0).getDate();
+  const dayStart = selectedYear === minimumParts.year && selectedMonth === minimumParts.month ? minimumParts.day : 1;
+  const dayOptions = Array.from({ length: Math.max(0, maximumDay - dayStart + 1) }, (_, index) => dayStart + index);
+  const yearOptions = [minimumParts.year, minimumParts.year + 1, minimumParts.year + 2];
+
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
+  }
+
+  function updateDatePart(part: DatePart, value: string) {
+    setDateParts((current) => {
+      const next = { ...current, [part]: value };
+
+      if (part === "year" && Number(value) === minimumParts.year && Number(next.month) < minimumParts.month) {
+        next.month = "";
+        next.day = "";
+      }
+
+      if (part === "month") {
+        next.day = "";
+      }
+
+      const nextDate = formatDate(next.year, next.month, next.day);
+      setForm((currentForm) => ({ ...currentForm, preferredDate: nextDate }));
+      return next;
+    });
+  }
+
+  function resetForm() {
+    setForm(INITIAL_FORM);
+    setDateParts({ year: minimumDate.slice(0, 4), month: "", day: "" });
+    setStep(1);
+    setError("");
   }
 
   function primaryValid() {
@@ -277,8 +341,7 @@ export default function TokanyakuHome() {
       const data = (await response.json()) as { requestCode?: string; error?: string };
       if (!response.ok || !data.requestCode) throw new Error(data.error || copy.submitError);
       setRequestCode(data.requestCode);
-      setForm(INITIAL_FORM);
-      setStep(1);
+      resetForm();
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : copy.submitError);
     } finally {
@@ -297,6 +360,10 @@ export default function TokanyakuHome() {
         .tokanyaku-concern-chip.tokanyaku-solution{border-color:#cfe1ff;background:#f2f7ff;color:#1b64da;font-weight:760}
         @keyframes tokConcernScroll{to{transform:translateX(-50%)}}
 
+        .tokanyaku-date-selects{display:grid;grid-template-columns:1.15fr .85fr .85fr;gap:8px;min-width:0}
+        .tokanyaku-date-time select{width:100%;min-width:0;min-height:52px;padding:0 13px;border:1px solid #e5e8eb;border-radius:13px;outline:0;color:#191f28;background:#fff;font-size:14px;transition:border-color .1s ease,box-shadow .1s ease}
+        .tokanyaku-date-time select:focus{border-color:#8abcfb;box-shadow:0 0 0 4px rgba(49,130,246,.1)}
+
         .tokanyaku-explore-marquee{display:grid;gap:8px;min-width:0;overflow:hidden}
         .tokanyaku-marquee-lane{overflow:hidden;mask-image:linear-gradient(to right,transparent,#000 5%,#000 95%,transparent);-webkit-mask-image:linear-gradient(to right,transparent,#000 5%,#000 95%,transparent)}
         .tokanyaku-marquee-track{display:flex;gap:8px;width:max-content;padding:2px 4px;animation:tokExploreScroll 23s linear infinite;will-change:transform}
@@ -309,6 +376,22 @@ export default function TokanyakuHome() {
         .tokanyaku-marquee-track a b{color:#8b95a1;font-size:10px}
         @keyframes tokExploreScroll{to{transform:translateX(-50%)}}
 
+        @media(max-width:480px){
+          .tokanyaku-header .tokanyaku-primary-nav{display:none}
+          .tokanyaku-hero{padding-top:20px}
+          .tokanyaku-hero p{max-width:355px}
+          .tokanyaku-step-grid{gap:14px}
+          .tokanyaku-place-group{gap:8px;padding:10px}
+          .tokanyaku-category-grid{gap:6px}
+          .tokanyaku-category-grid button{min-height:40px}
+          .tokanyaku-field{gap:6px}
+          .tokanyaku-field input,.tokanyaku-field textarea,.tokanyaku-date-time select{font-size:16px}
+          .tokanyaku-field input,.tokanyaku-date-time select{min-height:48px}
+          .tokanyaku-submit,.tokanyaku-back{min-height:50px}
+          .tokanyaku-side{gap:10px}
+          .tokanyaku-trust-card ol{margin-top:13px;gap:9px}
+          .tokanyaku-price-card{gap:7px}
+        }
         @media(max-width:720px){
           .tokanyaku-concern-strip{mask-image:none;-webkit-mask-image:none}
           .tokanyaku-concern-track{gap:6px;padding:6px 0;animation-duration:17s}
@@ -419,8 +502,30 @@ export default function TokanyakuHome() {
                   <label className="tokanyaku-field">
                     <span>{copy.preferred}</span>
                     <div className="tokanyaku-date-time">
-                      <input type="date" min={minimumDate} value={form.preferredDate} onChange={(event) => update("preferredDate", event.target.value)} />
-                      <input type="time" value={form.preferredTime} onChange={(event) => update("preferredTime", event.target.value)} />
+                      <div className="tokanyaku-date-selects">
+                        <select aria-label={copy.year} value={dateParts.year} onChange={(event) => updateDatePart("year", event.target.value)}>
+                          {yearOptions.map((year) => <option key={year} value={year}>{language === "ja" ? `${year}年` : year}</option>)}
+                        </select>
+                        <select aria-label={copy.month} value={dateParts.month} onChange={(event) => updateDatePart("month", event.target.value)}>
+                          <option value="">{copy.month}</option>
+                          {MONTHS.map((month) => (
+                            <option key={month} value={String(month)} disabled={Number(dateParts.year) === minimumParts.year && month < minimumParts.month}>
+                              {language === "ja" ? `${month}月` : new Intl.DateTimeFormat("en", { month: "short" }).format(new Date(2026, month - 1, 1))}
+                            </option>
+                          ))}
+                        </select>
+                        <select aria-label={copy.day} value={dateParts.day} disabled={!dateParts.month} onChange={(event) => updateDatePart("day", event.target.value)}>
+                          <option value="">{copy.day}</option>
+                          {dayOptions.map((day) => <option key={day} value={String(day)}>{language === "ja" ? `${day}日` : day}</option>)}
+                        </select>
+                      </div>
+                      <select className="tokanyaku-time-select" aria-label={copy.time} value={form.preferredTime} onChange={(event) => update("preferredTime", event.target.value)}>
+                        {TIME_OPTIONS.map((time) => (
+                          <option key={time} value={time}>
+                            {language === "ja" ? time : new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).format(new Date(`2026-01-01T${time}:00`))}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </label>
 
