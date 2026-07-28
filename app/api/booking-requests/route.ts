@@ -21,12 +21,20 @@ function date(value: unknown) {
 function webUrl(value: unknown) {
   const cleaned = text(value, 500);
   if (!cleaned) return "";
+
+  const candidate = /^https?:\/\//i.test(cleaned) ? cleaned : `https://${cleaned}`;
   try {
-    const parsed = new URL(cleaned);
-    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.toString() : null;
+    const parsed = new URL(candidate);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    if (!parsed.hostname.includes(".")) return null;
+    return parsed.toString();
   } catch {
     return null;
   }
+}
+
+function errorMessage(language: string, ja: string, en: string) {
+  return language === "ja" ? ja : en;
 }
 
 function requestCode() {
@@ -58,22 +66,46 @@ export async function POST(request: Request) {
     if (!ALLOWED_LANGUAGES.has(language) || !ALLOWED_CATEGORIES.has(category)) {
       return NextResponse.json({ error: "Unsupported request." }, { status: 400 });
     }
+
+    // Validate the contact step first so an invalid email never surfaces as a venue URL error.
+    if (!EMAIL_PATTERN.test(customerEmail)) {
+      return NextResponse.json(
+        { error: errorMessage(language, "メールアドレスを確認してください。", "Please enter a valid email address.") },
+        { status: 400 },
+      );
+    }
+    if (!consent) {
+      return NextResponse.json(
+        { error: errorMessage(language, "予約条件への同意が必要です。", "Please agree to the booking terms.") },
+        { status: 400 },
+      );
+    }
+
     if (placeUrl === null) {
-      return NextResponse.json({ error: "Please enter a valid http(s) venue URL." }, { status: 400 });
+      return NextResponse.json(
+        { error: errorMessage(language, "お店のURLを確認してください。", "Please enter a valid venue URL.") },
+        { status: 400 },
+      );
     }
     if ((!rawPlaceName && !placeUrl) || !preferredDate || !/^\d{2}:\d{2}$/.test(preferredTime)) {
-      return NextResponse.json({ error: "Please enter the place, date, and time." }, { status: 400 });
+      return NextResponse.json(
+        { error: errorMessage(language, "お店、希望日時を確認してください。", "Please check the place, date, and time.") },
+        { status: 400 },
+      );
     }
     if (!Number.isInteger(partySize) || partySize < 1 || partySize > 20) {
-      return NextResponse.json({ error: "Party size must be between 1 and 20." }, { status: 400 });
-    }
-    if (!EMAIL_PATTERN.test(customerEmail) || !consent) {
-      return NextResponse.json({ error: "Please check your email and agreement." }, { status: 400 });
+      return NextResponse.json(
+        { error: errorMessage(language, "人数は1〜20名で入力してください。", "Party size must be between 1 and 20.") },
+        { status: 400 },
+      );
     }
 
     const preferredAt = new Date(`${preferredDate}T${preferredTime}:00+09:00`);
     if (Number.isNaN(preferredAt.getTime()) || preferredAt.getTime() <= Date.now()) {
-      return NextResponse.json({ error: "The preferred date and time must be in the future." }, { status: 400 });
+      return NextResponse.json(
+        { error: errorMessage(language, "希望日時は現在より後の日時を選んでください。", "The preferred date and time must be in the future.") },
+        { status: 400 },
+      );
     }
 
     const placeName = rawPlaceName || (language === "ja" ? "URLから店舗確認" : "Identify venue from URL");
