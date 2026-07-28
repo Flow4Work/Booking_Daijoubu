@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./tokanyaku.css";
+import "./tokanyaku-refine.css";
 
 export const metadata: Metadata = {
   title: "韓国のお店予約を日本語で | Tokanyaku",
