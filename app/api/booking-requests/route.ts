@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { sendBookingReceiptEmail } from "@/lib/booking-email";
+import { sendBookingReceiptEmail } from "@/lib/tokanyaku-booking-email";
 import { getSupabaseServerClient } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -18,10 +18,21 @@ function date(value: unknown) {
   return /^\d{4}-\d{2}-\d{2}$/.test(cleaned) ? cleaned : null;
 }
 
+function webUrl(value: unknown) {
+  const cleaned = text(value, 500);
+  if (!cleaned) return "";
+  try {
+    const parsed = new URL(cleaned);
+    return parsed.protocol === "http:" || parsed.protocol === "https:" ? parsed.toString() : null;
+  } catch {
+    return null;
+  }
+}
+
 function requestCode() {
   const day = new Date().toISOString().slice(0, 10).replaceAll("-", "");
   const random = crypto.randomUUID().replaceAll("-", "").slice(0, 6).toUpperCase();
-  return `BD-${day}-${random}`;
+  return `TKY-${day}-${random}`;
 }
 
 export async function POST(request: Request) {
@@ -34,9 +45,9 @@ export async function POST(request: Request) {
 
     const language = text(body.language, 2);
     const category = text(body.category, 20);
-    const placeName = text(body.placeName, 120);
+    const rawPlaceName = text(body.placeName, 120);
     const placeAddress = text(body.placeAddress, 300);
-    const placeUrl = text(body.placeUrl, 500);
+    const placeUrl = webUrl(body.placeUrl);
     const preferredDate = date(body.preferredDate);
     const preferredTime = text(body.preferredTime, 5);
     const partySize = Number(body.partySize);
@@ -47,7 +58,10 @@ export async function POST(request: Request) {
     if (!ALLOWED_LANGUAGES.has(language) || !ALLOWED_CATEGORIES.has(category)) {
       return NextResponse.json({ error: "Unsupported request." }, { status: 400 });
     }
-    if (!placeName || !preferredDate || !/^\d{2}:\d{2}$/.test(preferredTime)) {
+    if (placeUrl === null) {
+      return NextResponse.json({ error: "Please enter a valid http(s) venue URL." }, { status: 400 });
+    }
+    if ((!rawPlaceName && !placeUrl) || !preferredDate || !/^\d{2}:\d{2}$/.test(preferredTime)) {
       return NextResponse.json({ error: "Please enter the place, date, and time." }, { status: 400 });
     }
     if (!Number.isInteger(partySize) || partySize < 1 || partySize > 20) {
@@ -62,6 +76,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "The preferred date and time must be in the future." }, { status: 400 });
     }
 
+    const placeName = rawPlaceName || (language === "ja" ? "URLから店舗確認" : "Identify venue from URL");
     const supabase = getSupabaseServerClient();
     if (!supabase) {
       return NextResponse.json({ error: "Booking requests are temporarily unavailable." }, { status: 503 });
