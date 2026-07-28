@@ -1,5 +1,5 @@
-import BookingHome from "@/components/BookingHome";
+import TokanyakuHome from "@/components/TokanyakuHome";
 
 export default function Home() {
-  return <BookingHome />;
+  return <TokanyakuHome />;
 }

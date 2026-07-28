@@ -1,0 +1,714 @@
+:root {
+  --tok-blue: #3182f6;
+  --tok-blue-dark: #1b64da;
+  --tok-ink: #191f28;
+  --tok-muted: #6b7684;
+  --tok-line: #e5e8eb;
+  --tok-soft: #f2f4f6;
+  --tok-bg: #f7f8fa;
+  --tok-danger: #e42939;
+}
+
+.tokanyaku-page {
+  min-height: 100vh;
+  overflow-x: hidden;
+  color: var(--tok-ink);
+  background: var(--tok-bg);
+}
+
+.tokanyaku-page button,
+.tokanyaku-page input,
+.tokanyaku-page textarea {
+  font: inherit;
+}
+
+.tokanyaku-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 68px;
+  padding: 10px max(20px, calc((100% - 1120px) / 2));
+  border-bottom: 1px solid rgba(229, 232, 235, .9);
+  background: rgba(255, 255, 255, .94);
+  backdrop-filter: blur(18px);
+}
+
+.tokanyaku-logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: max-content;
+}
+
+.tokanyaku-logo > span {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  color: #fff;
+  background: var(--tok-blue);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.tokanyaku-logo strong {
+  font-size: 17px;
+  font-weight: 780;
+  letter-spacing: -.035em;
+}
+
+.tokanyaku-header nav {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.tokanyaku-header nav > button {
+  min-height: 38px;
+  padding: 0 13px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #4e5968;
+  font-size: 12px;
+  font-weight: 740;
+}
+
+.tokanyaku-header .tokanyaku-primary-nav {
+  color: #fff;
+  background: var(--tok-blue);
+}
+
+.tokanyaku-language {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 11px;
+  background: var(--tok-soft);
+}
+
+.tokanyaku-language button {
+  min-height: 30px;
+  padding: 0 9px;
+  border: 0;
+  border-radius: 8px;
+  color: #8b95a1;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 760;
+}
+
+.tokanyaku-language button.active {
+  color: var(--tok-ink);
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 27, 55, .07);
+}
+
+.tokanyaku-hero {
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
+  padding: 54px 0 28px;
+}
+
+.tokanyaku-hero > div {
+  max-width: 800px;
+}
+
+.tokanyaku-eyebrow,
+.tokanyaku-form-heading > span,
+.tokanyaku-trust-card > span,
+.tokanyaku-price-card > span,
+.tokanyaku-explore > div:first-child > span {
+  color: var(--tok-blue-dark);
+  font-size: 11px;
+  font-weight: 820;
+  letter-spacing: .08em;
+}
+
+.tokanyaku-hero h1 {
+  margin: 10px 0 14px;
+  font-size: clamp(34px, 5vw, 54px);
+  line-height: 1.08;
+  letter-spacing: -.052em;
+  font-weight: 800;
+}
+
+.tokanyaku-hero p {
+  max-width: 720px;
+  margin: 0;
+  color: var(--tok-muted);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.tokanyaku-hero small {
+  display: inline-flex;
+  margin-top: 15px;
+  padding: 8px 11px;
+  border-radius: 999px;
+  color: #315a91;
+  background: #eef6ff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.tokanyaku-shell {
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
+}
+
+.tokanyaku-booking-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 330px;
+  align-items: start;
+  gap: 18px;
+  scroll-margin-top: 84px;
+}
+
+.tokanyaku-card {
+  border: 1px solid rgba(229, 232, 235, .94);
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: 0 12px 34px rgba(0, 27, 55, .055);
+}
+
+.tokanyaku-form-card {
+  padding: 32px;
+}
+
+.tokanyaku-form-heading h2,
+.tokanyaku-explore h2 {
+  margin: 8px 0 0;
+  font-size: clamp(27px, 3vw, 36px);
+  line-height: 1.18;
+  letter-spacing: -.045em;
+}
+
+.tokanyaku-form-heading p,
+.tokanyaku-explore p,
+.tokanyaku-trust-card p {
+  margin: 10px 0 0;
+  color: var(--tok-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.tokanyaku-steps {
+  display: grid;
+  grid-template-columns: 28px 1fr 28px;
+  align-items: center;
+  gap: 8px;
+  max-width: 180px;
+  margin: 24px 0;
+}
+
+.tokanyaku-steps span {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: #8b95a1;
+  background: var(--tok-soft);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.tokanyaku-steps span.active {
+  color: #fff;
+  background: var(--tok-blue);
+}
+
+.tokanyaku-steps i {
+  height: 2px;
+  background: var(--tok-line);
+}
+
+.tokanyaku-step-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 18px;
+}
+
+.tokanyaku-full {
+  grid-column: 1 / -1;
+}
+
+.tokanyaku-field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.tokanyaku-field > span,
+.tokanyaku-field legend,
+.tokanyaku-group-label {
+  color: #4e5968;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.tokanyaku-field input,
+.tokanyaku-field textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 52px;
+  padding: 0 14px;
+  border: 1px solid var(--tok-line);
+  border-radius: 13px;
+  outline: 0;
+  color: var(--tok-ink);
+  background: #fff;
+  font-size: 14px;
+  transition: border-color .1s ease, box-shadow .1s ease;
+}
+
+.tokanyaku-field textarea {
+  min-height: 110px;
+  padding-top: 13px;
+  resize: vertical;
+  line-height: 1.55;
+}
+
+.tokanyaku-field input:focus,
+.tokanyaku-field textarea:focus {
+  border-color: #8abcfb;
+  box-shadow: 0 0 0 4px rgba(49, 130, 246, .1);
+}
+
+.tokanyaku-field input::placeholder,
+.tokanyaku-field textarea::placeholder {
+  color: #b0b8c1;
+}
+
+.tokanyaku-category-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.tokanyaku-category-grid button {
+  min-height: 44px;
+  padding: 0 8px;
+  border: 1px solid var(--tok-line);
+  border-radius: 12px;
+  color: var(--tok-muted);
+  background: #fff;
+  font-size: 11px;
+  font-weight: 720;
+}
+
+.tokanyaku-category-grid button.active {
+  border-color: #a9cbff;
+  color: var(--tok-blue-dark);
+  background: #eff6ff;
+}
+
+.tokanyaku-place-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid #dce9fb;
+  border-radius: 17px;
+  background: #f8fbff;
+}
+
+.tokanyaku-place-group > .tokanyaku-group-label,
+.tokanyaku-place-group > small {
+  grid-column: 1 / -1;
+}
+
+.tokanyaku-place-group > small {
+  color: #718096;
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.tokanyaku-date-time {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(110px, .7fr);
+  gap: 8px;
+}
+
+.tokanyaku-submit,
+.tokanyaku-back {
+  min-height: 54px;
+  border: 0;
+  border-radius: 14px;
+  font-weight: 780;
+}
+
+.tokanyaku-submit {
+  padding: 0 20px;
+  color: #fff;
+  background: var(--tok-blue);
+  box-shadow: 0 10px 24px rgba(49, 130, 246, .18);
+}
+
+.tokanyaku-submit:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+  box-shadow: none;
+}
+
+.tokanyaku-back {
+  padding: 0 18px;
+  color: #4e5968;
+  background: var(--tok-soft);
+}
+
+.tokanyaku-actions {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 9px;
+}
+
+.tokanyaku-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 13px 14px;
+  border: 1px solid var(--tok-line);
+  border-radius: 13px;
+  color: #4e5968;
+  font-size: 11px;
+  line-height: 1.65;
+}
+
+.tokanyaku-consent input {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  accent-color: var(--tok-blue);
+}
+
+.tokanyaku-error {
+  margin: -3px 0 0;
+  color: var(--tok-danger);
+  font-size: 12px;
+  font-weight: 720;
+}
+
+.tokanyaku-honeypot {
+  position: absolute;
+  left: -9999px;
+}
+
+.tokanyaku-side {
+  position: sticky;
+  top: 86px;
+  display: grid;
+  gap: 14px;
+}
+
+.tokanyaku-trust-card,
+.tokanyaku-price-card {
+  padding: 24px;
+}
+
+.tokanyaku-trust-card ol {
+  display: grid;
+  gap: 14px;
+  margin: 20px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tokanyaku-trust-card li {
+  display: grid;
+  grid-template-columns: 30px 1fr;
+  align-items: center;
+  gap: 10px;
+}
+
+.tokanyaku-trust-card li b {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: var(--tok-blue-dark);
+  background: #eff6ff;
+  font-size: 11px;
+}
+
+.tokanyaku-trust-card li strong,
+.tokanyaku-price-card strong {
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.tokanyaku-price-card {
+  display: grid;
+  gap: 10px;
+}
+
+.tokanyaku-success {
+  display: grid;
+  justify-items: center;
+  padding: 28px 12px;
+  text-align: center;
+}
+
+.tokanyaku-success > span {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  color: #fff;
+  background: #20b26b;
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.tokanyaku-success h2 {
+  margin: 16px 0 0;
+  font-size: 26px;
+}
+
+.tokanyaku-success p {
+  max-width: 520px;
+  margin: 10px 0 18px;
+  color: var(--tok-muted);
+  line-height: 1.7;
+}
+
+.tokanyaku-success > div {
+  display: grid;
+  gap: 4px;
+  min-width: 240px;
+  padding: 14px 18px;
+  border-radius: 13px;
+  background: var(--tok-soft);
+}
+
+.tokanyaku-success button {
+  margin-top: 18px;
+  padding: 11px 15px;
+  border: 0;
+  border-radius: 11px;
+  color: var(--tok-blue-dark);
+  background: #eff6ff;
+  font-weight: 740;
+}
+
+.tokanyaku-explore {
+  display: grid;
+  grid-template-columns: minmax(250px, .75fr) minmax(0, 1.25fr);
+  gap: 26px;
+  margin-top: 22px;
+  padding: 28px;
+  scroll-margin-top: 84px;
+}
+
+.tokanyaku-explore h2 {
+  font-size: 26px;
+}
+
+.tokanyaku-discovery-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.tokanyaku-discovery-grid a {
+  display: grid;
+  grid-template-columns: 26px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 50px;
+  padding: 0 13px;
+  border: 1px solid var(--tok-line);
+  border-radius: 13px;
+  background: #fff;
+}
+
+.tokanyaku-discovery-grid a strong {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tokanyaku-discovery-grid a b {
+  color: #8b95a1;
+}
+
+.tokanyaku-footer {
+  margin-top: 58px;
+  padding: 34px 20px 48px;
+  text-align: center;
+  color: #8b95a1;
+  background: #fff;
+  font-size: 11px;
+}
+
+@media (max-width: 900px) {
+  .tokanyaku-booking-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .tokanyaku-side {
+    position: static;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .tokanyaku-header {
+    min-height: 60px;
+    padding: 9px 14px;
+  }
+
+  .tokanyaku-logo > span {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+    font-size: 14px;
+  }
+
+  .tokanyaku-logo strong {
+    font-size: 14px;
+  }
+
+  .tokanyaku-explore-nav {
+    display: none;
+  }
+
+  .tokanyaku-header nav > button {
+    min-height: 34px;
+    padding: 0 9px;
+    font-size: 10px;
+  }
+
+  .tokanyaku-language button {
+    min-height: 26px;
+    padding: 0 7px;
+    font-size: 9px;
+  }
+
+  .tokanyaku-hero,
+  .tokanyaku-shell {
+    width: min(100% - 24px, 1120px);
+  }
+
+  .tokanyaku-hero {
+    padding: 32px 0 20px;
+  }
+
+  .tokanyaku-hero h1 {
+    margin-top: 8px;
+    font-size: clamp(31px, 9.4vw, 39px);
+  }
+
+  .tokanyaku-hero p {
+    font-size: 13px;
+    line-height: 1.65;
+  }
+
+  .tokanyaku-hero small {
+    max-width: 100%;
+    font-size: 10px;
+    line-height: 1.4;
+  }
+
+  .tokanyaku-card {
+    border-radius: 20px;
+  }
+
+  .tokanyaku-form-card {
+    padding: 21px 16px;
+  }
+
+  .tokanyaku-form-heading h2 {
+    font-size: 27px;
+  }
+
+  .tokanyaku-step-grid,
+  .tokanyaku-place-group,
+  .tokanyaku-date-time,
+  .tokanyaku-actions,
+  .tokanyaku-side,
+  .tokanyaku-explore,
+  .tokanyaku-discovery-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .tokanyaku-full,
+  .tokanyaku-place-group > .tokanyaku-group-label,
+  .tokanyaku-place-group > small {
+    grid-column: auto;
+  }
+
+  .tokanyaku-category-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tokanyaku-field input,
+  .tokanyaku-field textarea {
+    font-size: 16px;
+  }
+
+  .tokanyaku-date-time input,
+  .tokanyaku-field input {
+    min-height: 50px;
+  }
+
+  .tokanyaku-actions .tokanyaku-back {
+    order: 2;
+  }
+
+  .tokanyaku-actions .tokanyaku-submit {
+    order: 1;
+  }
+
+  .tokanyaku-trust-card,
+  .tokanyaku-price-card {
+    padding: 20px;
+  }
+
+  .tokanyaku-explore {
+    padding: 22px 16px;
+  }
+
+  .tokanyaku-discovery-grid a {
+    min-height: 52px;
+  }
+}
+
+@media (max-width: 390px) {
+  .tokanyaku-header .tokanyaku-primary-nav {
+    display: none;
+  }
+
+  .tokanyaku-hero,
+  .tokanyaku-shell {
+    width: min(100% - 20px, 1120px);
+  }
+
+  .tokanyaku-form-card {
+    padding: 19px 14px;
+  }
+
+  .tokanyaku-category-grid button {
+    min-height: 42px;
+    font-size: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tokanyaku-page * {
+    scroll-behavior: auto !important;
+  }
+}
