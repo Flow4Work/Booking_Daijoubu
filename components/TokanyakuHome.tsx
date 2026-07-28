@@ -5,6 +5,7 @@ import { FormEvent, useMemo, useState } from "react";
 type Language = "ja" | "en";
 type Category = "restaurant" | "hair" | "nail" | "beauty";
 type DatePart = "year" | "month" | "day";
+type ErrorField = "" | "placeUrl" | "preferredDate" | "partySize" | "customerEmail" | "consent" | "general";
 
 type FormState = {
   category: Category;
@@ -18,6 +19,14 @@ type FormState = {
   customerEmail: string;
   consent: boolean;
   website: string;
+};
+
+type ApiResponse = {
+  requestCode?: string;
+  emailSent?: boolean;
+  error?: string;
+  step?: 1 | 2;
+  field?: ErrorField;
 };
 
 const INITIAL_FORM: FormState = {
@@ -39,10 +48,10 @@ const COPY = {
     request: "予約を依頼する",
     explore: "お店を探す",
     title: "韓国のお店予約を、もっと簡単に。",
-    description: "InstagramやNaver Mapで見つけたお店もOK。店名・日時・人数だけで、まず無料で空席確認。",
+    description: "InstagramやNaver Mapで見つけたお店もOK。URL・日時・人数だけで、まず無料で空席確認。",
     formLabel: "予約リクエスト",
     formTitle: "まず3つだけ教えてください",
-    formDescription: "お店、希望日時、人数。連絡先や細かい希望は次へ。",
+    formDescription: "お店のURL、希望日時、人数。連絡先や細かい希望は次へ。",
     category: "予約の種類",
     categories: {
       restaurant: "飲食店・カフェ",
@@ -51,11 +60,11 @@ const COPY = {
       beauty: "その他",
     },
     place: "お店",
-    placeName: "お店の名前",
+    placeName: "お店の名前（任意）",
     placeNamePlaceholder: "例：ソンス○○食堂",
-    placeUrl: "お店のURL",
+    placeUrl: "お店のURL（必須）",
     placeUrlPlaceholder: "Instagram / Naver / Google Maps URL",
-    placeHelp: "店名かURL、どちらか一つでOK。Instagramの投稿URLも使えます。",
+    placeHelp: "Instagram、Naver Map、Google Mapsなどのお店URLを貼り付けてください。",
     preferred: "希望日時",
     year: "年",
     month: "月",
@@ -83,9 +92,12 @@ const COPY = {
     successText: "店舗へ空席と予約条件を確認します。確認結果はメールでご案内します。",
     requestCode: "受付番号",
     another: "別の予約を依頼する",
-    requiredError: "お店、日時、人数を確認してください。",
+    urlRequiredError: "お店のURLを入力してください。",
+    urlInvalidError: "お店のURLを確認してください。",
+    dateError: "希望日時を選択してください。",
+    partyError: "人数は1〜20名で入力してください。",
     emailError: "メールアドレスを確認してください。",
-    consentError: "同意が必要です。",
+    consentError: "予約条件への同意が必要です。",
     submitError: "送信できませんでした。もう一度お試しください。",
     exploreTitle: "まだお店が決まっていませんか？",
     exploreText: "気になるカテゴリーから探して、そのまま予約リクエストへ。",
@@ -95,10 +107,10 @@ const COPY = {
     request: "Request booking",
     explore: "Find a place",
     title: "Book places in Korea, without the hassle.",
-    description: "Found it on Instagram or Naver Map? Send the place, time, and group size. We check availability for free first.",
+    description: "Found it on Instagram or Naver Map? Send the URL, time, and group size. We check availability for free first.",
     formLabel: "Booking request",
     formTitle: "Start with just 3 things",
-    formDescription: "Place, preferred time, and group size. Contact details come next.",
+    formDescription: "Place URL, preferred time, and group size. Contact details come next.",
     category: "Booking type",
     categories: {
       restaurant: "Restaurant / café",
@@ -107,11 +119,11 @@ const COPY = {
       beauty: "Other",
     },
     place: "Place",
-    placeName: "Place name",
+    placeName: "Place name (optional)",
     placeNamePlaceholder: "Example: Seongsu restaurant name",
-    placeUrl: "Place URL",
+    placeUrl: "Place URL (required)",
     placeUrlPlaceholder: "Instagram / Naver / Google Maps URL",
-    placeHelp: "A place name or URL is enough. Instagram post links work too.",
+    placeHelp: "Paste the venue link from Instagram, Naver Map, Google Maps, or another website.",
     preferred: "Preferred date and time",
     year: "Year",
     month: "Month",
@@ -139,9 +151,12 @@ const COPY = {
     successText: "We’ll check availability and booking terms with the venue and email you the result.",
     requestCode: "Request code",
     another: "Request another booking",
-    requiredError: "Check the place, date, time, and group size.",
-    emailError: "Check your email address.",
-    consentError: "Agreement is required.",
+    urlRequiredError: "Please enter the venue URL.",
+    urlInvalidError: "Please enter a valid venue URL.",
+    dateError: "Please select a preferred date and time.",
+    partyError: "Please enter between 1 and 20 guests.",
+    emailError: "Please enter a valid email address.",
+    consentError: "Please agree to the booking terms.",
     submitError: "We could not send your request. Please try again.",
     exploreTitle: "Still deciding where to go?",
     exploreText: "Browse a category, find a place, then send a booking request.",
@@ -218,12 +233,28 @@ function formatDate(year: string, month: string, day: string) {
   return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
 }
 
+function normalizeVenueUrl(value: string) {
+  const cleaned = value.trim();
+  if (!cleaned) return null;
+  const candidate = /^https?:\/\//i.test(cleaned) ? cleaned : `https://${cleaned}`;
+
+  try {
+    const parsed = new URL(candidate);
+    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") return null;
+    if (!parsed.hostname.includes(".")) return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
 export default function TokanyakuHome() {
   const [language, setLanguage] = useState<Language>("ja");
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [step, setStep] = useState<1 | 2>(1);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [errorField, setErrorField] = useState<ErrorField>("");
   const [requestCode, setRequestCode] = useState("");
 
   const minimumDate = useMemo(() => {
@@ -258,11 +289,28 @@ export default function TokanyakuHome() {
   const dayOptions = Array.from({ length: Math.max(0, maximumDay - dayStart + 1) }, (_, index) => dayStart + index);
   const yearOptions = [minimumParts.year, minimumParts.year + 1, minimumParts.year + 2];
 
+  function clearError(field?: ErrorField) {
+    if (!field || errorField === field || errorField === "general") {
+      setError("");
+      setErrorField("");
+    }
+  }
+
+  function showError(field: ErrorField, message: string) {
+    setErrorField(field);
+    setError(message);
+  }
+
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
+    if (key === "placeUrl") clearError("placeUrl");
+    if (key === "partySize") clearError("partySize");
+    if (key === "customerEmail") clearError("customerEmail");
+    if (key === "consent") clearError("consent");
   }
 
   function updateDatePart(part: DatePart, value: string) {
+    clearError("preferredDate");
     setDateParts((current) => {
       const next = { ...current, [part]: value };
 
@@ -286,27 +334,39 @@ export default function TokanyakuHome() {
     setDateParts({ year: minimumDate.slice(0, 4), month: "", day: "" });
     setStep(1);
     setError("");
+    setErrorField("");
   }
 
-  function primaryValid() {
+  function validateStepOne() {
+    const normalizedUrl = normalizeVenueUrl(form.placeUrl);
+    if (!form.placeUrl.trim()) {
+      return { ok: false as const, field: "placeUrl" as const, message: copy.urlRequiredError };
+    }
+    if (!normalizedUrl) {
+      return { ok: false as const, field: "placeUrl" as const, message: copy.urlInvalidError };
+    }
+    if (!form.preferredDate || !form.preferredTime || form.preferredDate < minimumDate) {
+      return { ok: false as const, field: "preferredDate" as const, message: copy.dateError };
+    }
+
     const partySize = Number(form.partySize);
-    return Boolean(
-      (form.placeName.trim() || form.placeUrl.trim()) &&
-        form.preferredDate &&
-        form.preferredTime &&
-        form.preferredDate >= minimumDate &&
-        Number.isInteger(partySize) &&
-        partySize >= 1 &&
-        partySize <= 20,
-    );
+    if (!Number.isInteger(partySize) || partySize < 1 || partySize > 20) {
+      return { ok: false as const, field: "partySize" as const, message: copy.partyError };
+    }
+
+    return { ok: true as const, normalizedUrl };
   }
 
   function continueToContact() {
     setError("");
-    if (!primaryValid()) {
-      setError(copy.requiredError);
+    setErrorField("");
+    const validation = validateStepOne();
+    if (!validation.ok) {
+      showError(validation.field, validation.message);
       return;
     }
+
+    setForm((current) => ({ ...current, placeUrl: validation.normalizedUrl }));
     setStep(2);
     requestAnimationFrame(() => {
       document.getElementById("booking-request")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -316,18 +376,24 @@ export default function TokanyakuHome() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError("");
+    setErrorField("");
 
-    if (!primaryValid()) {
+    const primary = validateStepOne();
+    if (!primary.ok) {
       setStep(1);
-      setError(copy.requiredError);
+      showError(primary.field, primary.message);
+      requestAnimationFrame(() => {
+        document.getElementById("booking-request")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
       return;
     }
+
     if (!EMAIL_PATTERN.test(form.customerEmail.trim())) {
-      setError(copy.emailError);
+      showError("customerEmail", copy.emailError);
       return;
     }
     if (!form.consent) {
-      setError(copy.consentError);
+      showError("consent", copy.consentError);
       return;
     }
 
@@ -336,17 +402,33 @@ export default function TokanyakuHome() {
       const response = await fetch("/api/booking-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, language }),
+        body: JSON.stringify({ ...form, placeUrl: primary.normalizedUrl, language }),
       });
-      const data = (await response.json()) as { requestCode?: string; error?: string };
-      if (!response.ok || !data.requestCode) throw new Error(data.error || copy.submitError);
+      const data = (await response.json()) as ApiResponse;
+
+      if (!response.ok || !data.requestCode) {
+        if (data.step === 1) setStep(1);
+        const field = data.field || "general";
+        showError(field, data.error || copy.submitError);
+        if (data.step === 1) {
+          requestAnimationFrame(() => {
+            document.getElementById("booking-request")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          });
+        }
+        return;
+      }
+
       setRequestCode(data.requestCode);
       resetForm();
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : copy.submitError);
+    } catch {
+      showError("general", copy.submitError);
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function renderFieldError(field: ErrorField) {
+    return error && errorField === field ? <small className="tokanyaku-field-error">{error}</small> : null;
   }
 
   return (
@@ -363,6 +445,8 @@ export default function TokanyakuHome() {
         .tokanyaku-date-selects{display:grid;grid-template-columns:1.15fr .85fr .85fr;gap:8px;min-width:0}
         .tokanyaku-date-time select{width:100%;min-width:0;min-height:52px;padding:0 13px;border:1px solid #e5e8eb;border-radius:13px;outline:0;color:#191f28;background:#fff;font-size:14px;transition:border-color .1s ease,box-shadow .1s ease}
         .tokanyaku-date-time select:focus{border-color:#8abcfb;box-shadow:0 0 0 4px rgba(49,130,246,.1)}
+        .tokanyaku-field-error{display:block;margin-top:2px;color:#e42939;font-size:11px;font-weight:720;line-height:1.45}
+        .tokanyaku-field.has-error input,.tokanyaku-field.has-error textarea,.tokanyaku-field.has-error select,.tokanyaku-consent.has-error{border-color:#f06c78;box-shadow:0 0 0 3px rgba(228,41,57,.08)}
 
         .tokanyaku-explore-marquee{display:grid;gap:8px;min-width:0;overflow:hidden}
         .tokanyaku-marquee-lane{overflow:hidden;mask-image:linear-gradient(to right,transparent,#000 5%,#000 95%,transparent);-webkit-mask-image:linear-gradient(to right,transparent,#000 5%,#000 95%,transparent)}
@@ -423,8 +507,8 @@ export default function TokanyakuHome() {
             {copy.explore}
           </button>
           <div className="tokanyaku-language" aria-label="Language selector">
-            <button className={language === "ja" ? "active" : ""} type="button" onClick={() => setLanguage("ja")}>日本語</button>
-            <button className={language === "en" ? "active" : ""} type="button" onClick={() => setLanguage("en")}>EN</button>
+            <button className={language === "ja" ? "active" : ""} type="button" onClick={() => { setLanguage("ja"); clearError(); }}>日本語</button>
+            <button className={language === "en" ? "active" : ""} type="button" onClick={() => { setLanguage("en"); clearError(); }}>EN</button>
           </div>
         </nav>
       </header>
@@ -488,9 +572,23 @@ export default function TokanyakuHome() {
 
                   <div className="tokanyaku-place-group tokanyaku-full">
                     <span className="tokanyaku-group-label">{copy.place}</span>
-                    <label className="tokanyaku-field">
+                    <label className={`tokanyaku-field ${errorField === "placeUrl" ? "has-error" : ""}`}>
                       <span>{copy.placeUrl}</span>
-                      <input type="url" inputMode="url" value={form.placeUrl} onChange={(event) => update("placeUrl", event.target.value)} placeholder={copy.placeUrlPlaceholder} maxLength={500} />
+                      <input
+                        type="url"
+                        inputMode="url"
+                        value={form.placeUrl}
+                        onChange={(event) => update("placeUrl", event.target.value)}
+                        onBlur={() => {
+                          if (!form.placeUrl.trim()) return;
+                          const normalized = normalizeVenueUrl(form.placeUrl);
+                          if (normalized) update("placeUrl", normalized);
+                        }}
+                        placeholder={copy.placeUrlPlaceholder}
+                        maxLength={500}
+                        aria-invalid={errorField === "placeUrl"}
+                      />
+                      {renderFieldError("placeUrl")}
                     </label>
                     <label className="tokanyaku-field">
                       <span>{copy.placeName}</span>
@@ -499,7 +597,7 @@ export default function TokanyakuHome() {
                     <small>{copy.placeHelp}</small>
                   </div>
 
-                  <label className="tokanyaku-field">
+                  <label className={`tokanyaku-field ${errorField === "preferredDate" ? "has-error" : ""}`}>
                     <span>{copy.preferred}</span>
                     <div className="tokanyaku-date-time">
                       <div className="tokanyaku-date-selects">
@@ -519,7 +617,7 @@ export default function TokanyakuHome() {
                           {dayOptions.map((day) => <option key={day} value={String(day)}>{language === "ja" ? `${day}日` : day}</option>)}
                         </select>
                       </div>
-                      <select className="tokanyaku-time-select" aria-label={copy.time} value={form.preferredTime} onChange={(event) => update("preferredTime", event.target.value)}>
+                      <select className="tokanyaku-time-select" aria-label={copy.time} value={form.preferredTime} onChange={(event) => { update("preferredTime", event.target.value); clearError("preferredDate"); }}>
                         {TIME_OPTIONS.map((time) => (
                           <option key={time} value={time}>
                             {language === "ja" ? time : new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", hour12: true }).format(new Date(`2026-01-01T${time}:00`))}
@@ -527,14 +625,16 @@ export default function TokanyakuHome() {
                         ))}
                       </select>
                     </div>
+                    {renderFieldError("preferredDate")}
                   </label>
 
-                  <label className="tokanyaku-field">
+                  <label className={`tokanyaku-field ${errorField === "partySize" ? "has-error" : ""}`}>
                     <span>{copy.partySize}</span>
-                    <input type="number" min="1" max="20" inputMode="numeric" value={form.partySize} onChange={(event) => update("partySize", event.target.value)} />
+                    <input type="number" min="1" max="20" inputMode="numeric" value={form.partySize} onChange={(event) => update("partySize", event.target.value)} aria-invalid={errorField === "partySize"} />
+                    {renderFieldError("partySize")}
                   </label>
 
-                  {error && <p className="tokanyaku-error tokanyaku-full">{error}</p>}
+                  {error && errorField === "general" && <p className="tokanyaku-error tokanyaku-full">{error}</p>}
                   <button className="tokanyaku-submit tokanyaku-full" type="button" onClick={continueToContact}>{copy.next}</button>
                 </div>
               ) : (
@@ -547,18 +647,20 @@ export default function TokanyakuHome() {
                     <span>{copy.notes}</span>
                     <textarea value={form.requestDetails} onChange={(event) => update("requestDetails", event.target.value)} placeholder={copy.notesPlaceholder} maxLength={1500} />
                   </label>
-                  <label className="tokanyaku-field tokanyaku-full">
+                  <label className={`tokanyaku-field tokanyaku-full ${errorField === "customerEmail" ? "has-error" : ""}`}>
                     <span>{copy.email}</span>
-                    <input type="email" autoComplete="email" value={form.customerEmail} onChange={(event) => update("customerEmail", event.target.value)} placeholder="name@example.com" maxLength={180} />
+                    <input type="email" inputMode="email" autoComplete="email" value={form.customerEmail} onChange={(event) => update("customerEmail", event.target.value)} placeholder="name@example.com" maxLength={180} aria-invalid={errorField === "customerEmail"} />
+                    {renderFieldError("customerEmail")}
                   </label>
                   <label className="tokanyaku-honeypot" aria-hidden="true">Website<input tabIndex={-1} autoComplete="off" value={form.website} onChange={(event) => update("website", event.target.value)} /></label>
-                  <label className="tokanyaku-consent tokanyaku-full">
+                  <label className={`tokanyaku-consent tokanyaku-full ${errorField === "consent" ? "has-error" : ""}`}>
                     <input type="checkbox" checked={form.consent} onChange={(event) => update("consent", event.target.checked)} />
                     <span>{copy.consent}</span>
                   </label>
-                  {error && <p className="tokanyaku-error tokanyaku-full">{error}</p>}
+                  {renderFieldError("consent")}
+                  {error && errorField === "general" && <p className="tokanyaku-error tokanyaku-full">{error}</p>}
                   <div className="tokanyaku-actions tokanyaku-full">
-                    <button className="tokanyaku-back" type="button" onClick={() => { setError(""); setStep(1); }}>{copy.back}</button>
+                    <button className="tokanyaku-back" type="button" onClick={() => { clearError(); setStep(1); }}>{copy.back}</button>
                     <button className="tokanyaku-submit" disabled={submitting} type="submit">{submitting ? copy.submitting : copy.submit}</button>
                   </div>
                 </div>
